@@ -1,5 +1,7 @@
+use crate::dao;
 use crate::dtos;
 use actix_web::{get, post, web, HttpResponse, Responder};
+use neo4rs::Graph;
 use utoipa;
 
 #[utoipa::path(
@@ -14,12 +16,18 @@ async fn test() -> impl Responder {
 
 #[utoipa::path(
     tag="relation", 
-    path="/relation/", 
-    responses((status = 201, description = "Test", body = ResponseDataString))
+    path="/relation", 
+    responses((status = 201, description = "Test", body = RelationInputDTO))
 )]
-#[post("/")]
-async fn create_relation() -> impl Responder {
-    return HttpResponse::Created().json(dtos::response_dto::ResponseData { data: "hello" });
+#[post("")]
+async fn create_relation(
+    input_dto: web::Json<dtos::relation_dto::RelationInputDTO>,
+    db: web::Data<Graph>,
+) -> impl Responder {
+    
+    dao::relation_dao::create_node(&db).await.expect("damn");
+
+    return HttpResponse::Created().json(dtos::response_dto::ResponseData { data: input_dto });
 }
 
 pub fn relation_router_config(cfg: &mut web::ServiceConfig) -> () {
