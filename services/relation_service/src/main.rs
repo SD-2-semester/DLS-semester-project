@@ -19,10 +19,17 @@ async fn main() -> std::io::Result<()> {
 
     #[derive(OpenApi)]
     #[openapi(
-        paths(handlers::relation::test, handlers::relation::create_relation),
+        paths(
+            handlers::users::test,
+            handlers::users::create_user,
+            handlers::users::create_user_relation
+        ),
         components(schemas(
-            dtos::response_dto::ResponseDataString,
-            dtos::relation_dto::RelationInputDTO
+            dtos::response_dtos::ResponseDataString,
+            dtos::response_dtos::ResponseDataMessageOK,
+            dtos::response_dtos::MessageOk,
+            dtos::user_dtos::RelationInputDTO,
+            dtos::user_dtos::UserInputDTO
         ))
     )]
     struct ApiDoc;
@@ -35,7 +42,7 @@ async fn main() -> std::io::Result<()> {
             .service(
                 SwaggerUi::new("/swagger-ui/{_:.*}").url("/api-docs/openapi.json", openapi.clone()),
             )
-            .configure(handlers::relation::relation_router_config)
+            .configure(handlers::users::relation_router_config)
     })
     .bind(("127.0.0.1", 8000))?
     .run()

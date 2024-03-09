@@ -1,2 +1,2 @@
-pub mod relation_dto;
-pub mod response_dto;
+pub mod user_dtos;
+pub mod response_dtos;
