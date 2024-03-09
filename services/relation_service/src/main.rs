@@ -2,6 +2,7 @@ use actix_web::{middleware::Logger, App, HttpServer};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
+mod dtos;
 mod handlers;
 
 #[actix_web::main]
@@ -11,8 +12,8 @@ async fn main() -> std::io::Result<()> {
 
     #[derive(OpenApi)]
     #[openapi(
-        paths(handlers::relation::test),
-        // components(schemas(ResponseDataString, ResponseDataPokemonDTO, PokemonDTO))
+        paths(handlers::relation::test, handlers::relation::create_relation),
+        components(schemas(dtos::response_dto::ResponseDataString))
     )]
     struct ApiDoc;
     let openapi = ApiDoc::openapi();
