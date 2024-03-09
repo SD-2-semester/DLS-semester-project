@@ -2,7 +2,7 @@ use neo4rs::*;
 
 pub async fn create_graph() -> Result<Graph> {
     let config = ConfigBuilder::default()
-        .uri("127.0.0.1:7687")
+        .uri("bolt://neo4j:7687")
         .user("neo4j")
         .password("password")
         .db("neo4j")

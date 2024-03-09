@@ -1,0 +1,32 @@
+version: '3.9'
+services:
+  app:
+    container_name: relation_service
+    build: ./services/relation_service
+    ports:
+      - "8000:8000"
+  neo4j:
+    image: neo4j:latest
+    container_name: neo4j
+    ports:
+      - "7474:7474" # HTTP
+      - "7687:7687" # Bolt
+    environment:
+      NEO4J_AUTH: neo4j/password
+    volumes:
+      - neo4j-data:/data
+      - neo4j-logs:/logs
+      - neo4j-import:/var/lib/neo4j/import
+      - neo4j-plugins:/plugins
+    healthcheck:
+      test: ["CMD-SHELL", "neo4j status || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    restart: always
+
+volumes:
+  neo4j-data:
+  neo4j-logs:
+  neo4j-import:
+  neo4j-plugins:
