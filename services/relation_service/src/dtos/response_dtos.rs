@@ -40,3 +40,13 @@ impl Default for MessageError {
         }
     }
 }
+
+// MessageError with a custom message
+impl MessageError {
+    pub fn new(message: String) -> Self {
+        MessageError {
+            message,
+            status: "failed".to_string(),
+        }
+    }
+}

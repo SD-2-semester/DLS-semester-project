@@ -1,3 +1,5 @@
+use std::result;
+
 use crate::dtos::user_dtos::{RelationInputDTO, UserInputDTO};
 use neo4rs::*;
 
@@ -6,21 +8,31 @@ pub async fn create_node(graph: &Graph, user_dto: UserInputDTO) -> Result<(), ne
         .param("user_id", user_dto.user_id.to_string())
         .param("user_name", user_dto.user_name);
 
-    graph.run(query).await.unwrap();
+    graph.run(query).await?;
+
     Ok(())
 }
 
 pub async fn create_relationship(
     graph: &Graph,
     relation_dto: RelationInputDTO,
-) -> Result<(), neo4rs::Error> {
+) -> Result<Option<i32>, neo4rs::Error> {
     let query = query(
         "MATCH (a:User), (b:User)
         WHERE a.user_id = $user_id_1 AND b.user_id = $user_id_2
-        CREATE (a)-[r:IsFriendsWith]->(b)",
+        CREATE (a)-[r:IsFriendsWith]->(b)
+        RETURN id(r) as relation_id",
     )
     .param("user_id_1", relation_dto.user_id_1.to_string())
     .param("user_id_2", relation_dto.user_id_2.to_string());
-    graph.run(query).await.unwrap();
-    Ok(())
+
+    let mut result = graph.execute(query).await?;
+
+    // Check if the relationship was created
+    if let Some(row) = result.next().await? {
+        let relation_id: i32 = row.get("relation_id").unwrap();
+        Ok(Some(relation_id))
+    } else {
+        Ok(None)
+    }
 }

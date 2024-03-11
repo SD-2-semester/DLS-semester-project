@@ -28,6 +28,7 @@ async fn main() -> std::io::Result<()> {
             dtos::response_dtos::ResponseDataString,
             dtos::response_dtos::ResponseDataMessageOK,
             dtos::response_dtos::MessageOk,
+            dtos::response_dtos::MessageError,
             dtos::user_dtos::RelationInputDTO,
             dtos::user_dtos::UserInputDTO
         ))
