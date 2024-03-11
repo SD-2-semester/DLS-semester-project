@@ -13,7 +13,7 @@ pub async fn create_graph() -> Result<Graph, Error> {
 
     let graph = Graph::connect(config).await?;
 
-    // Here we create the unique constraint
+    // create unique constraint on user_id
     let constraint_query = query(
         "CREATE CONSTRAINT FOR (user:User) REQUIRE user.user_id IS UNIQUE
     ",
