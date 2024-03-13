@@ -17,6 +17,7 @@ async fn test() -> impl Responder {
 }
 
 
+// Get a users relations.
 #[utoipa::path(
     tag="user", 
     path="/user", 
@@ -27,7 +28,7 @@ async fn get_user_relations() -> impl Responder {
     return HttpResponse::Ok().json(dtos::response_dtos::ResponseData { data: "hello" });
 }
 
-
+// Create a user.
 #[utoipa::path(
     tag="user", 
     path="/user", 
@@ -52,7 +53,7 @@ async fn create_user(
 }
 }
 
-
+// Create a relationship between two user.
 #[utoipa::path(
     tag="user", 
     path="/user/relation", 

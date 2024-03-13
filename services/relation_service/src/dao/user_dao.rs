@@ -3,6 +3,7 @@ use std::result;
 use crate::dtos::user_dtos::{RelationInputDTO, UserInputDTO};
 use neo4rs::*;
 
+// Create user in the database.
 pub async fn create_node(graph: &Graph, user_dto: UserInputDTO) -> Result<(), neo4rs::Error> {
     let query = query("CREATE (p:User {user_id: $user_id, user_name: $user_name})")
         .param("user_id", user_dto.user_id.to_string())
@@ -13,6 +14,8 @@ pub async fn create_node(graph: &Graph, user_dto: UserInputDTO) -> Result<(), ne
     Ok(())
 }
 
+// Create relationship between two users in the database.
+// If the database doesn't return an id, return None (returns an Option).
 pub async fn create_relationship(
     graph: &Graph,
     relation_dto: RelationInputDTO,
