@@ -3,7 +3,9 @@ use crate::dtos::user_dtos::UserInputDTO;
 use actix_web::web;
 use lapin::{
     message::DeliveryResult,
-    options::{BasicAckOptions, BasicConsumeOptions, BasicPublishOptions, QueueDeclareOptions},
+    options::{
+        BasicAckOptions, BasicConsumeOptions, BasicPublishOptions, QueueDeclareOptions,
+    },
     types::FieldTable,
     BasicProperties, Channel, Connection, ConnectionProperties, Consumer,
 };
@@ -53,7 +55,11 @@ pub async fn create_consumer(channel: &Channel, queue_name: &str) -> Consumer {
         .unwrap()
 }
 
-pub async fn publish_to_queue<T: Serialize>(channel: &Channel, queue_name: &str, data: &T) {
+pub async fn publish_to_queue<T: Serialize>(
+    channel: &Channel,
+    queue_name: &str,
+    data: &T,
+) {
     let payload = to_vec(data).expect("Failed to serialize data");
 
     channel
@@ -109,7 +115,9 @@ pub async fn create_new_user(consumer: &Consumer, db: web::Data<Graph>) {
             };
 
             if let Ok(payload_str) = std::str::from_utf8(&delivery.data) {
-                if let Ok(user_input_dto) = serde_json::from_str::<UserInputDTO>(payload_str) {
+                if let Ok(user_input_dto) =
+                    serde_json::from_str::<UserInputDTO>(payload_str)
+                {
                     dao::user_dao::create_node(&db_clone, user_input_dto).await;
                 }
             }

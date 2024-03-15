@@ -24,8 +24,10 @@ async fn main() -> std::io::Result<()> {
     let channel = rabbitmq::connection::channel_rabbitmq(&connection).await;
     rabbitmq::connection::create_queue(&channel, "new_relation_queue").await;
     rabbitmq::connection::create_queue(&channel, "new_user_queue").await;
-    let consumer_a = rabbitmq::connection::create_consumer(&channel, "new_relation_queue").await;
-    let consumer_b = rabbitmq::connection::create_consumer(&channel, "new_user_queue").await;
+    let consumer_a =
+        rabbitmq::connection::create_consumer(&channel, "new_relation_queue").await;
+    let consumer_b =
+        rabbitmq::connection::create_consumer(&channel, "new_user_queue").await;
     rabbitmq::connection::print_result(&consumer_a).await;
     rabbitmq::connection::create_new_user(&consumer_b, graph_data.clone()).await;
 
@@ -55,7 +57,8 @@ async fn main() -> std::io::Result<()> {
             .app_data(graph_data.clone())
             .app_data(web::Data::new(channel.clone()))
             .service(
-                SwaggerUi::new("/swagger-ui/{_:.*}").url("/api-docs/openapi.json", openapi.clone()),
+                SwaggerUi::new("/swagger-ui/{_:.*}")
+                    .url("/api-docs/openapi.json", openapi.clone()),
             )
             .configure(handlers::users::relation_router_config)
     })

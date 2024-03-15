@@ -78,8 +78,12 @@ async fn create_user_relation(
 
     match dao::user_dao::create_relationship(&db, &relation_dto).await {
         Ok(Some(_)) => {
-            rabbitmq::connection::publish_to_queue(&channel, "new_relation_queue", &relation_dto)
-                .await;
+            rabbitmq::connection::publish_to_queue(
+                &channel,
+                "new_relation_queue",
+                &relation_dto,
+            )
+            .await;
             HttpResponse::Created().json(dtos::response_dtos::ResponseData {
                 data: dtos::response_dtos::MessageOk::default(),
             })
@@ -87,9 +91,11 @@ async fn create_user_relation(
         Ok(None) => HttpResponse::NotFound().json(dtos::response_dtos::ResponseData {
             data: dtos::response_dtos::MessageError::default(),
         }),
-        Err(e) => HttpResponse::InternalServerError().json(dtos::response_dtos::ResponseData {
-            data: dtos::response_dtos::MessageError::new(e.to_string()),
-        }),
+        Err(e) => HttpResponse::InternalServerError().json(
+            dtos::response_dtos::ResponseData {
+                data: dtos::response_dtos::MessageError::new(e.to_string()),
+            },
+        ),
     }
 }
 

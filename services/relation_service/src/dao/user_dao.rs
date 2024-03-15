@@ -2,7 +2,10 @@ use crate::dtos::user_dtos::{RelationInputDTO, UserInputDTO};
 use neo4rs::*;
 
 // Create user in the database.
-pub async fn create_node(graph: &Graph, user_dto: UserInputDTO) -> Result<(), neo4rs::Error> {
+pub async fn create_node(
+    graph: &Graph,
+    user_dto: UserInputDTO,
+) -> Result<(), neo4rs::Error> {
     let query = query("CREATE (p:User {user_id: $user_id, user_name: $user_name})")
         .param("user_id", user_dto.user_id.to_string())
         .param("user_name", user_dto.user_name);
