@@ -12,7 +12,6 @@ use lapin::{
 use neo4rs::Graph;
 use serde::Serialize;
 use serde_json::to_vec;
-use std::sync::Arc;
 
 /// Create connection to rabbitmq, and return the connection.
 pub async fn get_connection() -> Connection {
