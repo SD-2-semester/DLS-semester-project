@@ -24,7 +24,7 @@ pub async fn create_relationship(
     let query = query(
         "MATCH (a:User), (b:User)
         WHERE a.user_id = $user_id_1 AND b.user_id = $user_id_2
-        CREATE (a)-[r:IsFriendsWith]->(b)
+        MERGE (a)-[r:IsFriendsWith]->(b)
         RETURN id(r) as relation_id",
     )
     .param("user_id_1", relation_dto.user_id_1.to_string())
