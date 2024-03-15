@@ -1,9 +1,16 @@
 use crate::dao;
 use crate::dtos;
+use crate::rabbitmq;
 use actix_web::http::StatusCode;
 use actix_web::{get, post, web, HttpResponse, Responder};
 use neo4rs::Graph;
 use utoipa;
+use lapin::{
+    message::DeliveryResult,
+    options::{BasicAckOptions, BasicConsumeOptions, BasicPublishOptions, QueueDeclareOptions},
+    types::FieldTable,
+    BasicProperties, Connection, ConnectionProperties, Channel
+};
 
 #[utoipa::path(
     tag="user", 
@@ -12,7 +19,8 @@ use utoipa;
         (status = 200, description = "Test", body = ResponseDataString))
 )]
 #[get("/test")]
-async fn test() -> impl Responder {
+async fn test(channel: web::Data<Channel>) -> impl Responder {
+    // rabbitmq::connection::publish_to_queue(&channel, "new_user").await;
     return HttpResponse::Ok().json(dtos::response_dtos::ResponseData { data: "hello" });
 }
 
@@ -67,15 +75,22 @@ async fn create_user(
 async fn create_user_relation(
     input_dto: web::Json<dtos::user_dtos::RelationInputDTO>,
     db: web::Data<Graph>,
+    channel: web::Data<Channel>
 ) -> impl Responder {
     
     let relation_dto = input_dto.into_inner();
 
-    match dao::user_dao::create_relationship(&db, relation_dto).await {
-        Ok(Some(_)) =>  HttpResponse::Created().json(dtos::response_dtos::ResponseData { data: dtos::response_dtos::MessageOk::default() }),
+    match dao::user_dao::create_relationship(&db, &relation_dto).await {
+        Ok(Some(_)) =>  {
+            rabbitmq::connection::publish_to_queue(&channel, "new_relation_queue", &relation_dto).await;
+            HttpResponse::Created().json(dtos::response_dtos::ResponseData { 
+                data: dtos::response_dtos::MessageOk::default() 
+            })},
         Ok(None) => HttpResponse::new(StatusCode::NOT_FOUND),
         Err(_) => HttpResponse::new(StatusCode::INTERNAL_SERVER_ERROR)
     }
+
+    
 }
 
 pub fn relation_router_config(cfg: &mut web::ServiceConfig) -> () {

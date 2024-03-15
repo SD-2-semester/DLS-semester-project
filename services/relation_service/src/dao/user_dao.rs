@@ -18,7 +18,7 @@ pub async fn create_node(graph: &Graph, user_dto: UserInputDTO) -> Result<(), ne
 // If the database doesn't return an id, return None (returns an Option).
 pub async fn create_relationship(
     graph: &Graph,
-    relation_dto: RelationInputDTO,
+    relation_dto: &RelationInputDTO,
 ) -> Result<Option<i32>, neo4rs::Error> {
     let query = query(
         "MATCH (a:User), (b:User)

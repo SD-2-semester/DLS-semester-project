@@ -1,10 +1,17 @@
 version: '3.9'
 services:
-  app:
-    container_name: relation_service
-    build: ./services/relation_service
-    ports:
-      - "8000:8000"
+  # app:
+  #   container_name: relation_service
+  #   build: 
+  #     context: ./services/relation_service
+  #     target: dev
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     - neo4j
+  #   volumes:
+  #     - ./services/relation_service/src:/relation_service/src
+
   neo4j:
     image: neo4j:latest
     container_name: neo4j
@@ -24,9 +31,24 @@ services:
       timeout: 10s
       retries: 10
     restart: always
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+      image: "rabbitmq:3-management"
+      ports:
+        - "5672:5672" # RabbitMQ server
+        - "15672:15672" # Management console
+      environment:
+        RABBITMQ_DEFAULT_USER: "user"
+        RABBITMQ_DEFAULT_PASS: "password"
+      volumes:
+        - "rabbitmq_data:/var/lib/rabbitmq"
+
 
 volumes:
   neo4j-data:
   neo4j-logs:
   neo4j-import:
   neo4j-plugins:
+  rabbitmq_data:

@@ -1,11 +1,17 @@
 use actix_web::{middleware::Logger, web, App, HttpServer};
+use lapin::{
+    message::DeliveryResult,
+    options::{BasicAckOptions, BasicConsumeOptions, BasicPublishOptions, QueueDeclareOptions},
+    types::FieldTable,
+    BasicProperties, Connection, ConnectionProperties,
+};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
-
 mod dao;
 mod db;
 mod dtos;
 mod handlers;
+pub mod rabbitmq;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -16,6 +22,12 @@ async fn main() -> std::io::Result<()> {
     let graph = db::db::create_graph()
         .await
         .expect("Failed to create graph");
+
+    let connection = rabbitmq::connection::get_connection().await;
+    let channel = rabbitmq::connection::channel_rabbitmq(&connection).await;
+    rabbitmq::connection::create_queue(&channel, "new_relation_queue").await;
+    let consumer = rabbitmq::connection::create_consumer(&channel, "new_user_queue").await;
+    rabbitmq::connection::print_result(&consumer).await;
 
     #[derive(OpenApi)]
     #[openapi(
@@ -40,6 +52,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(Logger::default())
             .app_data(web::Data::new(graph.clone()))
+            .app_data(web::Data::new(channel.clone()))
             .service(
                 SwaggerUi::new("/swagger-ui/{_:.*}").url("/api-docs/openapi.json", openapi.clone()),
             )
