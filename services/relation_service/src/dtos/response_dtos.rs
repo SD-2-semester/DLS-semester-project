@@ -20,6 +20,7 @@ impl fmt::Display for Status {
     }
 }
 
+/// A generic response structure.
 #[derive(Serialize, Deserialize, ToSchema)]
 #[aliases(ResponseDataString = ResponseData<String>,
     ResponseDataMessageOK = ResponseData<MessageOk>,
@@ -60,7 +61,7 @@ impl Default for MessageError {
     }
 }
 
-// MessageError with a custom message
+/// MessageError with a custom message
 impl MessageError {
     pub fn new(message: String) -> Self {
         MessageError {

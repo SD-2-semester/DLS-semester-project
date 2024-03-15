@@ -19,7 +19,7 @@ async fn test(_channel: web::Data<Channel>) -> impl Responder {
     HttpResponse::Ok().json(dtos::response_dtos::ResponseData { data: "hello" })
 }
 
-// Get a users relations.
+/// Get a users relations.
 #[utoipa::path(
     tag="user",
     path="/user",
@@ -30,7 +30,7 @@ async fn get_user_relations() -> impl Responder {
     HttpResponse::Ok().json(dtos::response_dtos::ResponseData { data: "hello" })
 }
 
-// Create a user.
+/// Create a user.
 #[utoipa::path(
     tag="user",
     path="/user",
@@ -58,7 +58,8 @@ async fn create_user(
     }
 }
 
-// Create a relationship between two user.
+/// Create a relationship between two user.
+/// If a relation is successfully saved in the database, publish message to queue.
 #[utoipa::path(
     tag="user",
     path="/user/relation",
@@ -77,6 +78,7 @@ async fn create_user_relation(
     let relation_dto = input_dto.into_inner();
 
     match dao::user_dao::create_relationship(&db, &relation_dto).await {
+        // If ok, publish message
         Ok(Some(_)) => {
             rabbitmq::connection::publish_to_queue(
                 &channel,

@@ -1,5 +1,6 @@
 use neo4rs::*;
 
+/// Create a connection to the database and return db abstraction.
 pub async fn create_graph() -> Result<Graph, Error> {
     let config = ConfigBuilder::default()
         .uri("bolt://localhost:7687")

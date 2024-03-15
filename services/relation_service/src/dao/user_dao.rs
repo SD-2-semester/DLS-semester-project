@@ -1,7 +1,7 @@
 use crate::dtos::user_dtos::{RelationInputDTO, UserInputDTO};
 use neo4rs::*;
 
-// Create user in the database.
+/// Create user in the database.
 pub async fn create_node(
     graph: &Graph,
     user_dto: UserInputDTO,
@@ -15,8 +15,8 @@ pub async fn create_node(
     Ok(())
 }
 
-// Create relationship between two users in the database.
-// If the database doesn't return an id, return None (returns an Option).
+/// Create relationship between two users in the database.
+/// If the database doesn't return an id, return None (returns an Option).
 pub async fn create_relationship(
     graph: &Graph,
     relation_dto: &RelationInputDTO,

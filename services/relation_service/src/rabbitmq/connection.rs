@@ -14,6 +14,7 @@ use serde::Serialize;
 use serde_json::to_vec;
 use std::sync::Arc;
 
+/// Create connection to rabbitmq, and return the connection.
 pub async fn get_connection() -> Connection {
     let uri = "amqp://user:password@localhost:5672";
     let options = ConnectionProperties::default()
@@ -25,10 +26,12 @@ pub async fn get_connection() -> Connection {
     Connection::connect(uri, options).await.unwrap()
 }
 
+/// Create channel to a given connection.
 pub async fn channel_rabbitmq(connection: &Connection) -> Channel {
     connection.create_channel().await.unwrap()
 }
 
+/// Create a queue if it doesn't exist. Durable set to true.
 pub async fn create_queue(channel: &Channel, queue_name: &str) {
     let queue_options = QueueDeclareOptions {
         durable: true,
@@ -41,6 +44,7 @@ pub async fn create_queue(channel: &Channel, queue_name: &str) {
         .unwrap();
 }
 
+/// Create a consumer.
 pub async fn create_consumer(channel: &Channel, queue_name: &str) -> Consumer {
     let tag = format!("tag_{}", queue_name);
 
@@ -55,6 +59,7 @@ pub async fn create_consumer(channel: &Channel, queue_name: &str) -> Consumer {
         .unwrap()
 }
 
+/// Create a publisher, that can publish serde structs.
 pub async fn publish_to_queue<T: Serialize>(
     channel: &Channel,
     queue_name: &str,
@@ -75,7 +80,7 @@ pub async fn publish_to_queue<T: Serialize>(
         .await
         .unwrap();
 }
-
+/// Just for testing if message gets consumed
 pub async fn print_result(consumer: &Consumer) {
     consumer.set_delegate(move |delivery: DeliveryResult| async move {
         let delivery = match delivery {
@@ -98,12 +103,11 @@ pub async fn print_result(consumer: &Consumer) {
     });
 }
 
+/// Create a new user in the database, by consuming message.
+/// We use db from app state.
 pub async fn create_new_user(consumer: &Consumer, db: web::Data<Graph>) {
-    let db_arc = Arc::new(db);
-
     consumer.set_delegate(move |delivery: DeliveryResult| {
-        let db_clone = db_arc.clone();
-
+        let db_clone = db.clone();
         async move {
             let delivery = match delivery {
                 Ok(Some(delivery)) => delivery,
