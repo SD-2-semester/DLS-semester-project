@@ -1,15 +1,12 @@
 use crate::dao;
 use crate::dtos;
 use crate::rabbitmq;
-use actix_web::http::StatusCode;
+
 use actix_web::{get, post, web, HttpResponse, Responder};
 use neo4rs::Graph;
 use utoipa;
 use lapin::{
-    message::DeliveryResult,
-    options::{BasicAckOptions, BasicConsumeOptions, BasicPublishOptions, QueueDeclareOptions},
-    types::FieldTable,
-    BasicProperties, Connection, ConnectionProperties, Channel
+    Channel
 };
 
 #[utoipa::path(
@@ -19,9 +16,9 @@ use lapin::{
         (status = 200, description = "Test", body = ResponseDataString))
 )]
 #[get("/test")]
-async fn test(channel: web::Data<Channel>) -> impl Responder {
+async fn test(_channel: web::Data<Channel>) -> impl Responder {
     // rabbitmq::connection::publish_to_queue(&channel, "new_user").await;
-    return HttpResponse::Ok().json(dtos::response_dtos::ResponseData { data: "hello" });
+    HttpResponse::Ok().json(dtos::response_dtos::ResponseData { data: "hello" })
 }
 
 
@@ -33,7 +30,7 @@ async fn test(channel: web::Data<Channel>) -> impl Responder {
 )]
 #[get("")]
 async fn get_user_relations() -> impl Responder {
-    return HttpResponse::Ok().json(dtos::response_dtos::ResponseData { data: "hello" });
+    HttpResponse::Ok().json(dtos::response_dtos::ResponseData { data: "hello" })
 }
 
 // Create a user.
@@ -93,7 +90,7 @@ async fn create_user_relation(
 
 }
 
-pub fn relation_router_config(cfg: &mut web::ServiceConfig) -> () {
+pub fn relation_router_config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("user")
             .service(test)

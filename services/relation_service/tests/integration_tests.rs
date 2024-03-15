@@ -5,8 +5,8 @@ mod tests {
     extern crate relation_service;
     use relation_service::{db, handlers};
 
-    use actix_web::{middleware::Logger, test, web, App, HttpResponse, HttpServer};
-    use std::sync::Mutex;
+    use actix_web::{middleware::Logger, test, web, App};
+    
 
 
     #[actix_web::test]

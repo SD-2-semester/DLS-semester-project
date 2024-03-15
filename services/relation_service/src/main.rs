@@ -1,10 +1,5 @@
 use actix_web::{middleware::Logger, web, App, HttpServer};
-use lapin::{
-    message::DeliveryResult,
-    options::{BasicAckOptions, BasicConsumeOptions, BasicPublishOptions, QueueDeclareOptions},
-    types::FieldTable,
-    BasicProperties, Connection, ConnectionProperties,
-};
+
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 mod dao;

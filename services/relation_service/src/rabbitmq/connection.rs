@@ -20,12 +20,12 @@ pub async fn get_connection() -> Connection {
         .with_executor(tokio_executor_trait::Tokio::current())
         .with_reactor(tokio_reactor_trait::Tokio);
 
-    return Connection::connect(uri, options).await.unwrap();
+    Connection::connect(uri, options).await.unwrap()
 }
 
 pub async fn channel_rabbitmq(connection: &Connection) -> Channel {
-    let channel = connection.create_channel().await.unwrap();
-    return channel;
+    
+    connection.create_channel().await.unwrap()
 }
 
 pub async fn create_queue(channel: &Channel, queue_name: &str) {
@@ -43,7 +43,9 @@ pub async fn create_queue(channel: &Channel, queue_name: &str) {
 pub async fn create_consumer(channel: &Channel, queue_name: &str) -> Consumer {
     let tag = format!("tag_{}", queue_name);
 
-    let consumer = channel
+    
+
+    channel
         .basic_consume(
             queue_name,
             &tag,
@@ -51,9 +53,7 @@ pub async fn create_consumer(channel: &Channel, queue_name: &str) -> Consumer {
             FieldTable::default(),
         )
         .await
-        .unwrap();
-
-    return consumer;
+        .unwrap()
 }
 
 pub async fn publish_to_queue<T: Serialize>(channel: &Channel, queue_name: &str, data: &T) {
