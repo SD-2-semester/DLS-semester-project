@@ -23,11 +23,16 @@ async fn main() -> std::io::Result<()> {
         .await
         .expect("Failed to create graph");
 
+    let graph_data = web::Data::new(graph);
+
     let connection = rabbitmq::connection::get_connection().await;
     let channel = rabbitmq::connection::channel_rabbitmq(&connection).await;
     rabbitmq::connection::create_queue(&channel, "new_relation_queue").await;
-    let consumer = rabbitmq::connection::create_consumer(&channel, "new_user_queue").await;
-    rabbitmq::connection::print_result(&consumer).await;
+    rabbitmq::connection::create_queue(&channel, "new_user_queue").await;
+    let consumer_a = rabbitmq::connection::create_consumer(&channel, "new_relation_queue").await;
+    let consumer_b = rabbitmq::connection::create_consumer(&channel, "new_user_queue").await;
+    rabbitmq::connection::print_result(&consumer_a).await;
+    rabbitmq::connection::create_new_user(&consumer_b, graph_data.clone()).await;
 
     #[derive(OpenApi)]
     #[openapi(
@@ -40,6 +45,7 @@ async fn main() -> std::io::Result<()> {
             dtos::response_dtos::ResponseDataString,
             dtos::response_dtos::ResponseDataMessageOK,
             dtos::response_dtos::MessageOk,
+            dtos::response_dtos::Status,
             dtos::response_dtos::MessageError,
             dtos::user_dtos::RelationInputDTO,
             dtos::user_dtos::UserInputDTO
@@ -51,7 +57,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
-            .app_data(web::Data::new(graph.clone()))
+            .app_data(graph_data.clone())
             .app_data(web::Data::new(channel.clone()))
             .service(
                 SwaggerUi::new("/swagger-ui/{_:.*}").url("/api-docs/openapi.json", openapi.clone()),

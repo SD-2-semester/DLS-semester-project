@@ -86,8 +86,8 @@ async fn create_user_relation(
             HttpResponse::Created().json(dtos::response_dtos::ResponseData { 
                 data: dtos::response_dtos::MessageOk::default() 
             })},
-        Ok(None) => HttpResponse::new(StatusCode::NOT_FOUND),
-        Err(_) => HttpResponse::new(StatusCode::INTERNAL_SERVER_ERROR)
+        Ok(None) =>  HttpResponse::NotFound().json(dtos::response_dtos::ResponseData { data: dtos::response_dtos::MessageError::default()}),
+        Err(e) => HttpResponse::InternalServerError().json(dtos::response_dtos::ResponseData { data: dtos::response_dtos::MessageError::new(e.to_string())})
     }
 
     
