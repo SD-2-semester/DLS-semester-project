@@ -7,8 +7,6 @@ mod tests {
 
     use actix_web::{middleware::Logger, test, web, App};
 
-
-
     #[actix_web::test]
     async fn test_index_get() {
         // create logger

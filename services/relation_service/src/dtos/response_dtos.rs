@@ -1,18 +1,22 @@
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 use std::fmt;
+use utoipa::ToSchema;
 
 #[derive(Serialize, Deserialize, ToSchema)]
-pub enum Status{
+pub enum Status {
     Success,
     Failure,
 }
 impl fmt::Display for Status {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", match self {
-            Status::Success => "Success",
-            Status::Failure => "Failure",
-        })
+        write!(
+            f,
+            "{}",
+            match self {
+                Status::Success => "Success",
+                Status::Failure => "Failure",
+            }
+        )
     }
 }
 
