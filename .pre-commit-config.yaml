@@ -37,3 +37,10 @@ repos:
         entry: sh -c 'cd services/relation_service && cargo clippy --fix -- -D warnings'
         language: system
         types: [rust]
+  - repo: local
+    hooks:
+      - id: rustfmt
+        name: rustfmt
+        entry: cargo fmt --all -- --check
+        language: system
+        types: [rust]
