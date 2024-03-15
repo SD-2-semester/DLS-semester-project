@@ -1,6 +1,7 @@
 use crate::dao;
 use crate::dtos::user_dtos::UserInputDTO;
 use actix_web::web;
+use dotenv::dotenv;
 use lapin::{
     message::DeliveryResult,
     options::{
@@ -12,17 +13,30 @@ use lapin::{
 use neo4rs::Graph;
 use serde::Serialize;
 use serde_json::to_vec;
+use std::env;
+
+/// Contruct uri
+pub async fn create_amqp_uri() -> String {
+    dotenv().ok(); // Load .env file
+
+    let user = env::var("AMQP_USER").unwrap_or_else(|_| "user".to_string());
+    let password = env::var("AMQP_PASSWORD").unwrap_or_else(|_| "password".to_string());
+    let host = env::var("AMQP_HOST").unwrap_or_else(|_| "localhost".to_string());
+    let port = env::var("AMQP_PORT").unwrap_or_else(|_| "5672".to_string());
+
+    format!("amqp://{}:{}@{}:{}", user, password, host, port)
+}
 
 /// Create connection to rabbitmq, and return the connection.
 pub async fn get_connection() -> Connection {
-    let uri = "amqp://user:password@localhost:5672";
+    let uri = create_amqp_uri().await;
     let options = ConnectionProperties::default()
         // Use tokio executor and reactor.
         // At the moment the reactor is only available for unix.
         .with_executor(tokio_executor_trait::Tokio::current())
         .with_reactor(tokio_reactor_trait::Tokio);
 
-    Connection::connect(uri, options).await.unwrap()
+    Connection::connect(&uri, options).await.unwrap()
 }
 
 /// Create channel to a given connection.

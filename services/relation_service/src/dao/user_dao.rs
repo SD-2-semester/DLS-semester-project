@@ -1,4 +1,5 @@
 use crate::dtos::user_dtos::{RelationInputDTO, UserInputDTO};
+use chrono;
 use neo4rs::*;
 
 /// Create user in the database.
@@ -6,9 +7,15 @@ pub async fn create_node(
     graph: &Graph,
     user_dto: UserInputDTO,
 ) -> Result<(), neo4rs::Error> {
-    let query = query("CREATE (p:User {user_id: $user_id, user_name: $user_name})")
-        .param("user_id", user_dto.user_id.to_string())
-        .param("user_name", user_dto.user_name);
+    let created_at = chrono::Utc::now();
+
+    let query = query(
+        "CREATE (p:User {user_id: $user_id, 
+        user_name: $user_name, created_at: $created_at})",
+    )
+    .param("user_id", user_dto.user_id.to_string())
+    .param("user_name", user_dto.user_name)
+    .param("created_at", created_at.to_rfc3339());
 
     graph.run(query).await?;
 
@@ -21,14 +28,17 @@ pub async fn create_relationship(
     graph: &Graph,
     relation_dto: &RelationInputDTO,
 ) -> Result<Option<i32>, neo4rs::Error> {
+    let created_at = chrono::Utc::now();
     let query = query(
         "MATCH (a:User), (b:User)
         WHERE a.user_id = $user_id_1 AND b.user_id = $user_id_2
         MERGE (a)-[r:IsFriendsWith]->(b)
+        ON CREATE SET r.created_at = $created_at
         RETURN id(r) as relation_id",
     )
     .param("user_id_1", relation_dto.user_id_1.to_string())
-    .param("user_id_2", relation_dto.user_id_2.to_string());
+    .param("user_id_2", relation_dto.user_id_2.to_string())
+    .param("created_at", created_at.to_rfc3339());
 
     let mut result = graph.execute(query).await?;
 

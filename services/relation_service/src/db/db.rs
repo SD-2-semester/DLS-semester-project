@@ -1,12 +1,23 @@
+use dotenv::dotenv;
 use neo4rs::*;
+use std::env;
 
 /// Create a connection to the database and return db abstraction.
 pub async fn create_graph() -> Result<Graph, Error> {
+    dotenv().ok(); // Load .env file
+
+    let uri =
+        env::var("NEO4J_URI").unwrap_or_else(|_| "bolt://localhost:7687".to_string());
+    let user = env::var("NEO4J_USER").unwrap_or_else(|_| "neo4j".to_string());
+    let password =
+        env::var("NEO4J_PASSWORD").unwrap_or_else(|_| "password".to_string());
+    let db = env::var("NEO4J_DB").unwrap_or_else(|_| "neo4j".to_string());
+
     let config = ConfigBuilder::default()
-        .uri("bolt://localhost:7687")
-        .user("neo4j")
-        .password("password")
-        .db("neo4j")
+        .uri(&uri)
+        .user(&user)
+        .password(&password)
+        .db(db)
         .fetch_size(500)
         .max_connections(10)
         .build()
