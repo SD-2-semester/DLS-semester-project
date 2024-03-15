@@ -6,7 +6,7 @@ mod tests {
     use relation_service::{db, handlers};
 
     use actix_web::{middleware::Logger, test, web, App};
-    
+
 
 
     #[actix_web::test]

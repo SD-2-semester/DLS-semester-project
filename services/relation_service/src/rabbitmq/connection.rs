@@ -24,7 +24,7 @@ pub async fn get_connection() -> Connection {
 }
 
 pub async fn channel_rabbitmq(connection: &Connection) -> Channel {
-    
+
     connection.create_channel().await.unwrap()
 }
 
@@ -43,7 +43,7 @@ pub async fn create_queue(channel: &Channel, queue_name: &str) {
 pub async fn create_consumer(channel: &Channel, queue_name: &str) -> Consumer {
     let tag = format!("tag_{}", queue_name);
 
-    
+
 
     channel
         .basic_consume(
