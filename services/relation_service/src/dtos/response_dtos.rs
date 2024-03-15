@@ -17,8 +17,8 @@ impl fmt::Display for Status {
 }
 
 #[derive(Serialize, Deserialize, ToSchema)]
-#[aliases(ResponseDataString = ResponseData<String>, 
-    ResponseDataMessageOK = ResponseData<MessageOk>, 
+#[aliases(ResponseDataString = ResponseData<String>,
+    ResponseDataMessageOK = ResponseData<MessageOk>,
     ResponseDataMessageError = ResponseData<MessageError>)]
 pub struct ResponseData<T> {
     pub data: T,

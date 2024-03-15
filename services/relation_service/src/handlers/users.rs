@@ -13,8 +13,8 @@ use lapin::{
 };
 
 #[utoipa::path(
-    tag="user", 
-    path="/user/test", 
+    tag="user",
+    path="/user/test",
     responses(
         (status = 200, description = "Test", body = ResponseDataString))
 )]
@@ -27,8 +27,8 @@ async fn test(channel: web::Data<Channel>) -> impl Responder {
 
 // Get a users relations.
 #[utoipa::path(
-    tag="user", 
-    path="/user", 
+    tag="user",
+    path="/user",
     responses((status = 200, description = "Get a users relations", body = ResponseDataString))
 )]
 #[get("")]
@@ -38,8 +38,8 @@ async fn get_user_relations() -> impl Responder {
 
 // Create a user.
 #[utoipa::path(
-    tag="user", 
-    path="/user", 
+    tag="user",
+    path="/user",
     request_body = UserInputDTO,
     responses(
         (status = 201, body = ResponseDataMessageOK),
@@ -49,8 +49,8 @@ async fn get_user_relations() -> impl Responder {
 async fn create_user(
     input_dto: web::Json<dtos::user_dtos::UserInputDTO>,
     db: web::Data<Graph>,
-) -> impl Responder {    
-    
+) -> impl Responder {
+
     match  dao::user_dao::create_node(&db, input_dto.into_inner()).await {
     Ok(_) =>HttpResponse::Created().json(dtos::response_dtos::ResponseData { data: dtos::response_dtos::MessageOk::default()}),
     Err(e) => {
@@ -63,13 +63,13 @@ async fn create_user(
 
 // Create a relationship between two user.
 #[utoipa::path(
-    tag="user", 
-    path="/user/relation", 
+    tag="user",
+    path="/user/relation",
     request_body = RelationInputDTO,
     responses(
-        (status = 201, body = ResponseDataMessageOK),  
+        (status = 201, body = ResponseDataMessageOK),
         (status = 404, body = ResponseDataMessageError),),
-      
+
 )]
 #[post("/relation")]
 async fn create_user_relation(
@@ -77,20 +77,20 @@ async fn create_user_relation(
     db: web::Data<Graph>,
     channel: web::Data<Channel>
 ) -> impl Responder {
-    
+
     let relation_dto = input_dto.into_inner();
 
     match dao::user_dao::create_relationship(&db, &relation_dto).await {
         Ok(Some(_)) =>  {
             rabbitmq::connection::publish_to_queue(&channel, "new_relation_queue", &relation_dto).await;
-            HttpResponse::Created().json(dtos::response_dtos::ResponseData { 
-                data: dtos::response_dtos::MessageOk::default() 
+            HttpResponse::Created().json(dtos::response_dtos::ResponseData {
+                data: dtos::response_dtos::MessageOk::default()
             })},
         Ok(None) =>  HttpResponse::NotFound().json(dtos::response_dtos::ResponseData { data: dtos::response_dtos::MessageError::default()}),
         Err(e) => HttpResponse::InternalServerError().json(dtos::response_dtos::ResponseData { data: dtos::response_dtos::MessageError::new(e.to_string())})
     }
 
-    
+
 }
 
 pub fn relation_router_config(cfg: &mut web::ServiceConfig) -> () {
