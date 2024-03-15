@@ -41,6 +41,6 @@ repos:
     hooks:
       - id: rustfmt
         name: rustfmt
-        entry: sh -c cd services/relation_service && cargo fmt --all -- --check'
+        entry: sh -c 'cd services/relation_service && cargo fmt --all -- --check'
         language: system
         types: [rust]
