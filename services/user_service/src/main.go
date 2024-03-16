@@ -1,9 +1,6 @@
 package main
 
-import (
-	"fmt"
-	"log"
-)
+import "log"
 
 func main() {
 	store, err := NewPostgresStore()
@@ -15,7 +12,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("store: %+v\n", store)
 	server := NewAPIServer(":8080", store)
 	server.Run()
 }

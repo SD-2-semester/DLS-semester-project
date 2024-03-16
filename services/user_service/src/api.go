@@ -1,15 +1,15 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
@@ -25,25 +25,81 @@ func NewAPIServer(listenAddr string, store Storage) *APIServer {
 func (s *APIServer) Run() {
 	router := mux.NewRouter()
 
-	router.HandleFunc("/users", makeHTTPHandleFunc(s.handleUser))
-	router.HandleFunc("/users/{id}", withJWTAuth(makeHTTPHandleFunc(s.handleGetUserByID)))
-	router.HandleFunc("/auth/login-email", makeHTTPHandleFunc(s.handleLoginEmail))
+	server := &http.Server{
+		Addr:         s.listenAddr,
+		Handler:      router,
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+		IdleTimeout:  60 * time.Second,
+	}
 
-	log.Println("Starting server on", s.listenAddr)
+	s.setupRoutes(router)
 
-	http.ListenAndServe(s.listenAddr, router)
+	go func() {
+		log.Printf("Server started on %s\n", s.listenAddr)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("ListenAndServe error: %v", err)
+		}
+	}()
+
+	shutdownGracefully(server)
 }
 
-func (s *APIServer) handleUser(w http.ResponseWriter, r *http.Request) error {
-	if r.Method == "GET" {
-		return s.handleGetUsers(w, r)
-	}
+func (s *APIServer) setupRoutes(router *mux.Router) {
+	// health check
+	router.HandleFunc(
+		"/health", s.logRequest(makeHTTPHandleFunc(s.handleHealthCheck)),
+	).Methods(http.MethodGet)
 
-	if r.Method == "POST" {
-		return s.handleCreateUser(w, r)
-	}
+	// user endpoints
+	router.HandleFunc(
+		"/users", s.logRequest(makeHTTPHandleFunc(s.handleGetUsers)),
+	).Methods(http.MethodGet)
 
-	return fmt.Errorf("unsupported method %s", r.Method)
+	router.HandleFunc(
+		"/users/me", s.logRequest(makeHTTPHandleFunc(s.handleGetCurrentUser)),
+	).Methods(http.MethodGet)
+
+	// auth endpoints
+	router.HandleFunc(
+		"/auth/login-email", s.logRequest(makeHTTPHandleFunc(s.handleLoginEmail)),
+	).Methods(http.MethodPost)
+
+	router.HandleFunc(
+		"/auth/register", s.logRequest(makeHTTPHandleFunc(s.handleRegisterUser)),
+	).Methods(http.MethodPost)
+
+	// default handler for unmatched routes
+	router.PathPrefix("/").HandlerFunc(s.logUnmatchedRequest)
+}
+
+func (s *APIServer) logRequest(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Request: %s %s\n", r.Method, r.URL.Path)
+		next(w, r)
+	}
+}
+
+func (s *APIServer) logUnmatchedRequest(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Unhandled request: %s %s\n", r.Method, r.URL.Path)
+	w.WriteHeader(http.StatusNotFound)
+}
+
+func shutdownGracefully(server *http.Server) {
+	stopChan := make(chan os.Signal, 1)
+	signal.Notify(stopChan, os.Interrupt)
+
+	<-stopChan // wait for interrupt signal
+
+	// create a deadline to wait for.
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	log.Println("Shutting down server...")
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatalf("Server Shutdown Failed:%+v", err)
+	}
+	log.Println("Server gracefully stopped.")
 }
 
 func (s *APIServer) handleGetUsers(w http.ResponseWriter, r *http.Request) error {
@@ -56,43 +112,23 @@ func (s *APIServer) handleGetUsers(w http.ResponseWriter, r *http.Request) error
 	return WriteJSON(w, http.StatusOK, users)
 }
 
-func (s *APIServer) handleGetUserByID(w http.ResponseWriter, r *http.Request) error {
-	if r.Method == "GET" {
-		uid, err := getID(r)
-
-		if err != nil {
-			return err
-		}
-
-		user, err := s.store.GetUserByID(uid)
-
-		if err != nil {
-			return err
-		}
-
-		return WriteJSON(w, http.StatusOK, user)
-	}
-
-	if r.Method == "DELETE" {
-		log.Println("deleting user")
-
-		return nil
-	}
-
-	return fmt.Errorf("unsupported method %s", r.Method)
-}
-
-func (s *APIServer) handleCreateUser(w http.ResponseWriter, r *http.Request) error {
+func (s *APIServer) handleRegisterUser(w http.ResponseWriter, r *http.Request) error {
 	createUserReq := new(CreateUserRequest)
 
 	if err := json.NewDecoder(r.Body).Decode(createUserReq); err != nil {
 		return err
 	}
 
+	hashedPassword, err := hashPassword(createUserReq.Password)
+
+	if err != nil {
+		return err
+	}
+
 	user := NewUser(
 		createUserReq.Username,
 		createUserReq.Email,
-		createUserReq.Password,
+		hashedPassword,
 	)
 
 	if err := s.store.CreateUser(user); err != nil {
@@ -101,18 +137,6 @@ func (s *APIServer) handleCreateUser(w http.ResponseWriter, r *http.Request) err
 
 	return WriteJSON(w, http.StatusCreated, user)
 
-}
-
-func (s *APIServer) handleDeleteUser(w http.ResponseWriter, r *http.Request) error {
-	uid, err := getID(r)
-
-	if err != nil {
-		return err
-	}
-
-	log.Println("deleting user", uid)
-
-	return nil
 }
 
 func (s *APIServer) handleLoginEmail(w http.ResponseWriter, r *http.Request) error {
@@ -132,8 +156,8 @@ func (s *APIServer) handleLoginEmail(w http.ResponseWriter, r *http.Request) err
 		return err
 	}
 
-	if user.Password != loginReq.Password {
-		return fmt.Errorf("invalid password")
+	if !checkPasswordHash(loginReq.Password, user.Password) {
+		return fmt.Errorf("invalid email or password")
 	}
 
 	token, err := createJWT(user)
@@ -143,7 +167,20 @@ func (s *APIServer) handleLoginEmail(w http.ResponseWriter, r *http.Request) err
 	}
 
 	return WriteJSON(w, http.StatusOK, map[string]string{"access_token": token})
+}
 
+func (s *APIServer) handleHealthCheck(w http.ResponseWriter, r *http.Request) error {
+	return WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+func (s *APIServer) handleGetCurrentUser(w http.ResponseWriter, r *http.Request) error {
+	user, err := currentUserFromJWT(r, s.store)
+
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, user)
 }
 
 func WriteJSON(w http.ResponseWriter, status int, v any) error {
@@ -152,75 +189,11 @@ func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	return json.NewEncoder(w).Encode(v)
 }
 
-func createJWT(user *User) (string, error) {
-	claims := &jwt.MapClaims{
-		"user_id": user.ID.String(),
-		"exp":     time.Now().Add(time.Minute * 30).Unix(),
-	}
-
-	secret := os.Getenv("JWT_SECRET")
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	ss, err := token.SignedString([]byte(os.Getenv(secret)))
-
-	fmt.Printf("token: %s\n", ss)
-
-	return ss, err
-}
-
-func withJWTAuth(handlerFunc http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		log.Println("withJWTAuth")
-
-		tokenString := r.Header.Get("Authorization")
-		_, err := validateJWT(tokenString)
-
-		if err != nil {
-			WriteJSON(
-				w,
-				http.StatusUnauthorized,
-				ApiError{Error: "invalid token"},
-			)
-			return
-		}
-
-		handlerFunc(w, r)
-	}
-}
-
-func validateJWT(tokenString string) (*jwt.Token, error) {
-	secret := os.Getenv("JWT_SECRET")
-	return jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-
-		return []byte(secret), nil
-	})
-
-}
-
-type apiFunc func(w http.ResponseWriter, r *http.Request) error
-
-type ApiError struct {
-	Error string `json:"error"`
-}
-
-func makeHTTPHandleFunc(f apiFunc) http.HandlerFunc {
+func makeHTTPHandleFunc(f ApiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := f(w, r); err != nil {
 			WriteJSON(w, http.StatusBadRequest, ApiError{Error: err.Error()})
 
 		}
 	}
-}
-
-func getID(r *http.Request) (uuid.UUID, error) {
-	id := mux.Vars(r)["id"]
-	uid, err := uuid.Parse(id)
-
-	if err != nil {
-		return uuid.Nil, fmt.Errorf("invalid user id %s", id)
-	}
-
-	return uid, nil
 }

@@ -20,6 +20,7 @@ type PostgresStore struct {
 }
 
 func NewPostgresStore() (*PostgresStore, error) {
+	// docker run --name some-postgres -e POSTGRES_PASSWORD=mysecretpassword -d postgres
 	connStr := "user=postgres " +
 		"dbname=postgres " +
 		"password=mysecretpassword " +
