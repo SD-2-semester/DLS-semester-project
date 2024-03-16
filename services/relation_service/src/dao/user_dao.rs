@@ -11,7 +11,7 @@ pub async fn create_node(
     let created_at = chrono::Utc::now();
 
     let query = query(
-        "CREATE (p:User {user_id: $user_id, 
+        "CREATE (p:User {user_id: $user_id,
         user_name: $user_name, created_at: $created_at})",
     )
     .param("user_id", user_dto.user_id.to_string())
