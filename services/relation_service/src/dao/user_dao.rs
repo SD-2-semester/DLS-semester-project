@@ -74,7 +74,7 @@ pub async fn get_all_relationships(
             Ok(user_relation) => relation_list.push(user_relation),
             Err(e) => {
                 eprintln!("Error converting row to UserRelationDTO: {}", e);
-                continue; // or return Err(e) to stop processing
+                continue;
             }
         }
     }

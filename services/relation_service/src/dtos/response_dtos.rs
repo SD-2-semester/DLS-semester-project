@@ -25,7 +25,7 @@ impl fmt::Display for Status {
 #[aliases(ResponseDataString = ResponseData<String>,
     ResponseDataMessageOK = ResponseData<MessageOk>,
     ResponseDataMessageError = ResponseData<MessageError>,
-    ResponseDataList = ResponseData<Vec<utoipa::openapi::RefOr<String>>>)]
+    ResponseDataList = ResponseData<Vec<String>>)]
 pub struct ResponseData<T> {
     pub data: T,
 }
