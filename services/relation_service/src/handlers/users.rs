@@ -5,11 +5,13 @@ use crate::rabbitmq;
 use actix_web::{get, post, web, HttpResponse, Responder};
 use lapin::Channel;
 use neo4rs::Graph;
-use utoipa;
+use utoipa::{path, IntoParams};
+use uuid::Uuid;
 
 #[utoipa::path(
     tag="user",
     path="/user/test",
+
     responses(
         (status = 200, description = "Test", body = ResponseDataString))
 )]
@@ -19,15 +21,43 @@ async fn test(_channel: web::Data<Channel>) -> impl Responder {
     HttpResponse::Ok().json(dtos::response_dtos::ResponseData { data: "hello" })
 }
 
+#[derive(IntoParams)]
+struct UserRelationParams {
+    #[param(
+        explode = false,
+        example = "123e4567-e89b-12d3-a456-426614174000"
+    )]
+    user_id: Uuid,
+}
+
 /// Get a users relations.
 #[utoipa::path(
     tag="user",
-    path="/user",
-    responses((status = 200, description = "Get a users relations", body = ResponseDataString))
+    path="/user/{user_id}",
+    params(
+        UserRelationParams,
+    ),
+    responses((status = 200, description = "Get a users relations", body = ResponseDataList))
 )]
-#[get("")]
-async fn get_user_relations() -> impl Responder {
-    HttpResponse::Ok().json(dtos::response_dtos::ResponseData { data: "hello" })
+#[get("/{user_id}")]
+async fn get_user_relations(
+    input_dto: web::Path<dtos::user_dtos::UserRelationRequestDTO>,
+    db: web::Data<Graph>,
+) -> impl Responder {
+    let data = dao::user_dao::get_all_relationships(input_dto.user_id, &db).await;
+
+    match data {
+        Ok(relation_data) => {
+            HttpResponse::Ok().json(dtos::response_dtos::ResponseData {
+                data: relation_data,
+            })
+        }
+        Err(e) => HttpResponse::InternalServerError().json(
+            dtos::response_dtos::ResponseData {
+                data: dtos::response_dtos::MessageError::new(e.to_string()),
+            },
+        ),
+    }
 }
 
 /// Create a user.
@@ -106,6 +136,7 @@ pub fn relation_router_config(cfg: &mut web::ServiceConfig) {
         web::scope("user")
             .service(test)
             .service(create_user)
-            .service(create_user_relation),
+            .service(create_user_relation)
+            .service(get_user_relations),
     );
 }

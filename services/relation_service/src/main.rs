@@ -52,7 +52,8 @@ async fn main() -> std::io::Result<()> {
         paths(
             handlers::users::test,
             handlers::users::create_user,
-            handlers::users::create_user_relation
+            handlers::users::create_user_relation,
+            handlers::users::get_user_relations
         ),
         components(schemas(
             dtos::response_dtos::ResponseDataString,
@@ -61,7 +62,8 @@ async fn main() -> std::io::Result<()> {
             dtos::response_dtos::Status,
             dtos::response_dtos::MessageError,
             dtos::user_dtos::RelationInputDTO,
-            dtos::user_dtos::UserInputDTO
+            dtos::user_dtos::UserInputDTO,
+            dtos::user_dtos::UserRelationRequestDTO
         ))
     )]
     struct ApiDoc;

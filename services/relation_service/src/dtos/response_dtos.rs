@@ -24,7 +24,8 @@ impl fmt::Display for Status {
 #[derive(Serialize, Deserialize, ToSchema)]
 #[aliases(ResponseDataString = ResponseData<String>,
     ResponseDataMessageOK = ResponseData<MessageOk>,
-    ResponseDataMessageError = ResponseData<MessageError>)]
+    ResponseDataMessageError = ResponseData<MessageError>,
+    ResponseDataList = ResponseData<Vec<utoipa::openapi::RefOr<String>>>)]
 pub struct ResponseData<T> {
     pub data: T,
 }

@@ -1,6 +1,7 @@
-use crate::dtos::user_dtos::{RelationInputDTO, UserInputDTO};
+use crate::dtos::user_dtos::{RelationInputDTO, UserInputDTO, UserRelationDTO};
 use chrono;
 use neo4rs::*;
+use uuid;
 
 /// Create user in the database.
 pub async fn create_node(
@@ -49,4 +50,36 @@ pub async fn create_relationship(
     } else {
         Ok(None)
     }
+}
+
+pub async fn get_all_relationships(
+    user_id: uuid::Uuid,
+    graph: &Graph,
+) -> Result<Vec<UserRelationDTO>, neo4rs::Error> {
+    let mut relation_list: Vec<UserRelationDTO> = Vec::new();
+
+    let query = query(
+        "
+        MATCH (a:User {user_id: $user_id})-[r:IsFriendsWith]-(b:User)
+        RETURN  b.user_name as user_name, r.created_at as friends_since
+    ",
+    )
+    .param("user_id", user_id.to_string());
+
+    let mut result = graph.execute(query).await?;
+
+    while let Some(row) = result.next().await? {
+        // Handle potential conversion error
+        match row.to::<UserRelationDTO>() {
+            Ok(user_relation) => relation_list.push(user_relation),
+            Err(e) => {
+                eprintln!("Error converting row to UserRelationDTO: {}", e);
+                continue; // or return Err(e) to stop processing
+            }
+        }
+    }
+
+    println!("{:?}", relation_list);
+
+    Ok(relation_list)
 }
