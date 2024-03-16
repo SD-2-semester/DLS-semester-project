@@ -8,4 +8,8 @@ test:
 	@go test -v ./...
 
 lint:
-	@gofmt -s -w .
+	@goimports -l -w .
+	@golangci-lint run
+
+fmt:
+	@go fmt ./...

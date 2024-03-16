@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -27,34 +26,26 @@ func createJWT(user *User) (string, error) {
 	return ss, err
 }
 
-func permissionDenied(w http.ResponseWriter) {
-	WriteJSON(
-		w,
-		http.StatusUnauthorized,
-		ApiError{Error: "permission denied"},
-	)
-}
+// func withJWTAuth(handlerFunc http.HandlerFunc, store Storage) http.HandlerFunc {
+// 	return func(w http.ResponseWriter, r *http.Request) {
+// 		log.Println("withJWTAuth")
 
-func withJWTAuth(handlerFunc http.HandlerFunc, store Storage) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		log.Println("withJWTAuth")
+// 		tokenString := r.Header.Get("Authorization")
+// 		token, err := validateJWT(tokenString)
 
-		tokenString := r.Header.Get("Authorization")
-		token, err := validateJWT(tokenString)
+// 		if err != nil {
+// 			permissionDenied(w)
+// 			return
+// 		}
 
-		if err != nil {
-			permissionDenied(w)
-			return
-		}
+// 		if !token.Valid {
+// 			permissionDenied(w)
+// 			return
+// 		}
 
-		if !token.Valid {
-			permissionDenied(w)
-			return
-		}
-
-		handlerFunc(w, r)
-	}
-}
+// 		handlerFunc(w, r)
+// 	}
+// }
 
 func validateJWT(tokenString string) (*jwt.Token, error) {
 	secret := os.Getenv("JWT_SECRET")
@@ -65,13 +56,11 @@ func validateJWT(tokenString string) (*jwt.Token, error) {
 
 		return []byte(secret), nil
 	})
-
 }
 
 func currentUserFromJWT(r *http.Request, store Storage) (*User, error) {
 	tokenString := r.Header.Get("Authorization")
 	token, err := validateJWT(tokenString)
-
 	if err != nil {
 		return nil, err
 	}
@@ -79,10 +68,6 @@ func currentUserFromJWT(r *http.Request, store Storage) (*User, error) {
 	if !token.Valid {
 		return nil, fmt.Errorf("invalid token")
 	}
-
-	claims := token.Claims.(jwt.MapClaims)
-	log.Println(claims["user_id"])
-	log.Println(claims)
 
 	uid := token.Claims.(jwt.MapClaims)["user_id"].(string)
 

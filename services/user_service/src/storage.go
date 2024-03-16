@@ -41,7 +41,6 @@ func NewPostgresStore() (*PostgresStore, error) {
 
 func (s *PostgresStore) Init() error {
 	return s.createUserTable()
-
 }
 
 func (s *PostgresStore) createUserTable() error {
@@ -67,7 +66,6 @@ func (s *PostgresStore) CreateUser(u *User) error {
 
 	_, err := s.db.Exec(query, u.ID, u.Username, u.Email, u.Password, u.CreatedAt)
 	return err
-
 }
 
 func (s *PostgresStore) GetUsers() ([]*User, error) {
@@ -81,13 +79,10 @@ func (s *PostgresStore) GetUsers() ([]*User, error) {
 		return nil, err
 	}
 
-	defer rows.Close()
-
 	users := []*User{}
 
 	for rows.Next() {
 		user, err := scanIntoUser(rows)
-
 		if err != nil {
 			return nil, err
 		}
@@ -109,8 +104,6 @@ func (s *PostgresStore) GetUserByID(id uuid.UUID) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	defer rows.Close()
 
 	for rows.Next() {
 		return scanIntoUser(rows)

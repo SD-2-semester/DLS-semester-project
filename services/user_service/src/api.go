@@ -22,6 +22,7 @@ func NewAPIServer(listenAddr string, store Storage) *APIServer {
 	return &APIServer{listenAddr: listenAddr, store: store}
 }
 
+// Run starts the API server
 func (s *APIServer) Run() {
 	router := mux.NewRouter()
 
@@ -102,9 +103,8 @@ func shutdownGracefully(server *http.Server) {
 	log.Println("Server gracefully stopped.")
 }
 
-func (s *APIServer) handleGetUsers(w http.ResponseWriter, r *http.Request) error {
+func (s *APIServer) handleGetUsers(w http.ResponseWriter, _ *http.Request) error {
 	users, err := s.store.GetUsers()
-
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,6 @@ func (s *APIServer) handleRegisterUser(w http.ResponseWriter, r *http.Request) e
 	}
 
 	hashedPassword, err := hashPassword(createUserReq.Password)
-
 	if err != nil {
 		return err
 	}
@@ -136,7 +135,6 @@ func (s *APIServer) handleRegisterUser(w http.ResponseWriter, r *http.Request) e
 	}
 
 	return WriteJSON(w, http.StatusCreated, user)
-
 }
 
 func (s *APIServer) handleLoginEmail(w http.ResponseWriter, r *http.Request) error {
@@ -151,7 +149,6 @@ func (s *APIServer) handleLoginEmail(w http.ResponseWriter, r *http.Request) err
 	}
 
 	user, err := s.store.GetUserByEmail(loginReq.Email)
-
 	if err != nil {
 		return err
 	}
@@ -161,7 +158,6 @@ func (s *APIServer) handleLoginEmail(w http.ResponseWriter, r *http.Request) err
 	}
 
 	token, err := createJWT(user)
-
 	if err != nil {
 		return err
 	}
@@ -169,13 +165,12 @@ func (s *APIServer) handleLoginEmail(w http.ResponseWriter, r *http.Request) err
 	return WriteJSON(w, http.StatusOK, map[string]string{"access_token": token})
 }
 
-func (s *APIServer) handleHealthCheck(w http.ResponseWriter, r *http.Request) error {
+func (s *APIServer) handleHealthCheck(w http.ResponseWriter, _ *http.Request) error {
 	return WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
 func (s *APIServer) handleGetCurrentUser(w http.ResponseWriter, r *http.Request) error {
 	user, err := currentUserFromJWT(r, s.store)
-
 	if err != nil {
 		return err
 	}
@@ -189,11 +184,13 @@ func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	return json.NewEncoder(w).Encode(v)
 }
 
-func makeHTTPHandleFunc(f ApiFunc) http.HandlerFunc {
+func makeHTTPHandleFunc(f APIFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := f(w, r); err != nil {
-			WriteJSON(w, http.StatusBadRequest, ApiError{Error: err.Error()})
-
+			err := WriteJSON(w, http.StatusBadRequest, APIError{Error: err.Error()})
+			if err != nil {
+				log.Printf("failed to write error response: %v", err)
+			}
 		}
 	}
 }

@@ -36,8 +36,8 @@ func NewUser(username, email, password string) *User {
 	}
 }
 
-type ApiFunc func(w http.ResponseWriter, r *http.Request) error
+type APIFunc func(w http.ResponseWriter, r *http.Request) error
 
-type ApiError struct {
+type APIError struct {
 	Error string `json:"error"`
 }
