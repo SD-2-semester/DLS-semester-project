@@ -5,7 +5,7 @@ use crate::rabbitmq;
 use actix_web::{get, post, web, HttpResponse, Responder};
 use lapin::Channel;
 use neo4rs::Graph;
-use utoipa::{path, IntoParams};
+use utoipa::IntoParams;
 use uuid::Uuid;
 
 #[utoipa::path(
