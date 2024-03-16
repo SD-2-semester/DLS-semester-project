@@ -1,0 +1,46 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-added-large-files
+        args:
+          - --maxkb=1000
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: debug-statements
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.0.254
+    hooks:
+      - id: ruff
+        args:
+          - --fix
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        name: isort (python)
+        args: ["--profile", "black"]
+  - repo: https://github.com/psf/black
+    rev: 23.1.0
+    hooks:
+      - id: black
+        language_version: python3
+        args:
+          - --line-length=88
+  - repo: local
+    hooks:
+      - id: clippy
+        name: clippy
+        entry: sh -c 'cd services/relation_service && cargo clippy --fix -- -D warnings'
+        language: system
+        types: [rust]
+  - repo: local
+    hooks:
+      - id: rustfmt
+        name: rustfmt
+        entry: sh -c 'cd services/relation_service && cargo fmt --all'
+        language: system
+        types: [rust]
