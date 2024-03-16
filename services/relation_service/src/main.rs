@@ -30,16 +30,16 @@ async fn main() -> std::io::Result<()> {
     rabbitmq::connection::create_queue(&channel, "new_user_queue").await;
 
     // Create consumers
-    let consumer_a =
-        rabbitmq::connection::create_consumer(&channel, "new_relation_queue").await;
+    // let consumer_a =
+    //     rabbitmq::connection::create_consumer(&channel, "new_relation_queue").await;
     let consumer_b =
         rabbitmq::connection::create_consumer(&channel, "new_user_queue").await;
 
     // Spawn RabbitMQ consumer tasks
-    let _consumer_a_handle =
-        tokio::spawn(
-            async move { rabbitmq::connection::print_result(&consumer_a).await },
-        );
+    // let _consumer_a_handle =
+    //     tokio::spawn(
+    //         async move { rabbitmq::connection::print_result(&consumer_a).await },
+    //     );
 
     let _consumer_b_handle = tokio::spawn(async move {
         rabbitmq::connection::create_new_user(&consumer_b, graph_data_for_consumer_b)
