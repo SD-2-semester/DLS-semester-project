@@ -10,16 +10,18 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
 type APIServer struct {
 	listenAddr string
 	store      Storage
+	publisher  Publisher
 }
 
-func NewAPIServer(listenAddr string, store Storage) *APIServer {
-	return &APIServer{listenAddr: listenAddr, store: store}
+func NewAPIServer(listenAddr string, store Storage, publisher Publisher) *APIServer {
+	return &APIServer{listenAddr: listenAddr, store: store, publisher: publisher}
 }
 
 // Run starts the API server
@@ -131,6 +133,12 @@ func (s *APIServer) handleRegisterUser(w http.ResponseWriter, r *http.Request) e
 		return err
 	}
 
+	s.publisher.PublishUserCreated(&CreateUserPublish{
+		ID:       user.ID,
+		Username: user.Username,
+		Email:    user.Email,
+	})
+
 	return WriteJSON(w, http.StatusCreated, user)
 }
 
@@ -163,6 +171,11 @@ func (s *APIServer) handleLoginEmail(w http.ResponseWriter, r *http.Request) err
 }
 
 func (s *APIServer) handleHealthCheck(w http.ResponseWriter, _ *http.Request) error {
+	s.publisher.PublishUserCreated(&CreateUserPublish{
+		ID:       uuid.New(),
+		Username: "yoyoyo",
+		Email:    "test@gmail.com",
+	})
 	return WriteJSON(w, http.StatusOK, map[string]string{"status": "osks"})
 }
 

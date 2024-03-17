@@ -18,6 +18,11 @@ type CreateUserRequest struct {
 	Password string `json:"password"`
 }
 
+type CreateUserPublish struct {
+	ID       uuid.UUID `json:"id"`
+	Username string    `json:"username"`
+}
+
 type User struct {
 	ID        uuid.UUID `json:"id"`
 	Username  string    `json:"username"`

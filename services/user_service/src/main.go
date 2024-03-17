@@ -14,6 +14,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	server := NewAPIServer(":8080", store)
+	publisher, err := NewRabbitMQPublisher()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	server := NewAPIServer(":8080", store, publisher)
 	server.Run()
 }

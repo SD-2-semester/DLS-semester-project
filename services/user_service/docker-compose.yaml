@@ -12,19 +12,26 @@ services:
     restart: unless-stopped
     depends_on:
       - auth-db
+      - rabbitmq
     environment:
       AUTHSERVICE_HOST: 0.0.0.0
+      # Database
       AUTHSERVICE_DB_HOST: auth-db
       AUTHSERVICE_DB_PORT: 5432
       AUTHSERVICE_DB_USER: auth
       AUTHSERVICE_DB_PASSWORD: auth
       AUTHSERVICE_DB_NAME: auth
-    
-    networks:
-      - auth-service-network
-      
+      # RabbitMQ
+      AUTHSERVICE_RABBITMQ_HOST: rabbitmq
+      AUTHSERVICE_RABBITMQ_PORT: 5672
+      AUTHSERVICE_RABBITMQ_USER: user
+      AUTHSERVICE_RABBITMQ_PASSWORD: password
+    volumes:
+      - ./src:/app
+      - ./:/app
+
   auth-db:
-    image: postgres:13
+    image: postgres:16
     container_name: auth-db
     environment:
       POSTGRES_USER: auth
@@ -41,14 +48,19 @@ services:
       interval: 2s
       timeout: 3s
       retries: 40
-    
-    networks:
-      - auth-service-network
+
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    ports:
+      - "5672:5672" # RabbitMQ server
+      - "15672:15672" # Management console
+    environment:
+      RABBITMQ_DEFAULT_USER: "user"
+      RABBITMQ_DEFAULT_PASS: "password"
+    volumes:
+      - "rabbitmq_data:/var/lib/rabbitmq"
     
 volumes:
   auth-db-data:
+  rabbitmq_data:
 
-
-networks:
-  auth-service-network:
-    driver: bridge
