@@ -18,6 +18,10 @@ func createJWT(user *User) (string, error) {
 	}
 
 	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		secret = "my_secret"
+	}
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, err := token.SignedString([]byte(os.Getenv(secret)))
 

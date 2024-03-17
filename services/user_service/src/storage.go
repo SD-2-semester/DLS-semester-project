@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"os"
 
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
@@ -21,12 +23,15 @@ type PostgresStore struct {
 
 func NewPostgresStore() (*PostgresStore, error) {
 	// docker run --name some-postgres -e POSTGRES_PASSWORD=mysecretpassword -d postgres
-	connStr := "user=postgres " +
-		"dbname=postgres " +
-		"password=mysecretpassword " +
-		"sslmode=disable " +
-		"port=5433"
 
+	user := os.Getenv("AUTHSERVICE_DB_USER")
+	dbname := os.Getenv("AUTHSERVICE_DB_NAME")
+	password := os.Getenv("AUTHSERVICE_DB_PASSWORD")
+	port := os.Getenv("AUTHSERVICE_DB_PORT")
+
+	log.Printf("*********************************user: %s, dbname: %s, password: %s, port: %s\n", user, dbname, password, port)
+
+	connStr := fmt.Sprintf("user=%s dbname=%s password=%s port=%s sslmode=disable", user, dbname, password, port)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, err
