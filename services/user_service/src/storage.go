@@ -22,17 +22,20 @@ type PostgresStore struct {
 }
 
 func NewPostgresStore() (*PostgresStore, error) {
-	// docker run --name some-postgres -e POSTGRES_PASSWORD=mysecretpassword -d postgres
-
+	host := os.Getenv("AUTHSERVICE_DB_HOST")
 	user := os.Getenv("AUTHSERVICE_DB_USER")
 	dbname := os.Getenv("AUTHSERVICE_DB_NAME")
 	password := os.Getenv("AUTHSERVICE_DB_PASSWORD")
 	port := os.Getenv("AUTHSERVICE_DB_PORT")
 
-	log.Printf("*********************************user: %s, dbname: %s, password: %s, port: %s\n", user, dbname, password, port)
+	// Connection string
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
 
-	connStr := fmt.Sprintf("user=%s dbname=%s password=%s port=%s sslmode=disable", user, dbname, password, port)
-	db, err := sql.Open("postgres", connStr)
+	log.Println(psqlInfo)
+
+	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		return nil, err
 	}

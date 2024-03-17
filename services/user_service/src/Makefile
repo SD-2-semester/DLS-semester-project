@@ -1,8 +1,11 @@
 build:
 	@go build -o bin/user_service
 
-run: build
+run-b: build
 	@./bin/user_service
+
+run:
+	@docker-compose up
 
 test:
 	@go test -v ./...

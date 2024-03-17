@@ -26,6 +26,8 @@ func NewAPIServer(listenAddr string, store Storage) *APIServer {
 func (s *APIServer) Run() {
 	router := mux.NewRouter()
 
+	// yo
+
 	server := &http.Server{
 		Addr:         s.listenAddr,
 		Handler:      router,
@@ -47,38 +49,33 @@ func (s *APIServer) Run() {
 }
 
 func (s *APIServer) setupRoutes(router *mux.Router) {
+	router.Use(LogMiddleware)
+
 	// health check
 	router.HandleFunc(
-		"/health", s.logRequest(makeHTTPHandleFunc(s.handleHealthCheck)),
+		"/health", makeHTTPHandleFunc(s.handleHealthCheck),
 	).Methods(http.MethodGet)
 
 	// user endpoints
 	router.HandleFunc(
-		"/users", s.logRequest(makeHTTPHandleFunc(s.handleGetUsers)),
+		"/users", makeHTTPHandleFunc(s.handleGetUsers),
 	).Methods(http.MethodGet)
 
 	router.HandleFunc(
-		"/users/me", s.logRequest(makeHTTPHandleFunc(s.handleGetCurrentUser)),
+		"/users/me", makeHTTPHandleFunc(s.handleGetCurrentUser),
 	).Methods(http.MethodGet)
 
 	// auth endpoints
 	router.HandleFunc(
-		"/auth/login-email", s.logRequest(makeHTTPHandleFunc(s.handleLoginEmail)),
+		"/auth/login-email", makeHTTPHandleFunc(s.handleLoginEmail),
 	).Methods(http.MethodPost)
 
 	router.HandleFunc(
-		"/auth/register", s.logRequest(makeHTTPHandleFunc(s.handleRegisterUser)),
+		"/auth/register", makeHTTPHandleFunc(s.handleRegisterUser),
 	).Methods(http.MethodPost)
 
 	// default handler for unmatched routes
 	router.PathPrefix("/").HandlerFunc(s.logUnmatchedRequest)
-}
-
-func (s *APIServer) logRequest(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Request: %s %s\n", r.Method, r.URL.Path)
-		next(w, r)
-	}
 }
 
 func (s *APIServer) logUnmatchedRequest(w http.ResponseWriter, r *http.Request) {
@@ -92,7 +89,7 @@ func shutdownGracefully(server *http.Server) {
 
 	<-stopChan // wait for interrupt signal
 
-	// create a deadline to wait for.
+	// create a deadline to wait for
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
@@ -166,7 +163,7 @@ func (s *APIServer) handleLoginEmail(w http.ResponseWriter, r *http.Request) err
 }
 
 func (s *APIServer) handleHealthCheck(w http.ResponseWriter, _ *http.Request) error {
-	return WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	return WriteJSON(w, http.StatusOK, map[string]string{"status": "osks"})
 }
 
 func (s *APIServer) handleGetCurrentUser(w http.ResponseWriter, r *http.Request) error {
@@ -181,7 +178,7 @@ func (s *APIServer) handleGetCurrentUser(w http.ResponseWriter, r *http.Request)
 func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(status)
-	return json.NewEncoder(w).Encode(v)
+	return json.NewEncoder(w).Encode(map[string]any{"data": v})
 }
 
 func makeHTTPHandleFunc(f APIFunc) http.HandlerFunc {
