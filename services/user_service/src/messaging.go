@@ -38,7 +38,7 @@ func NewRabbitMQPublisher() (*RabbitMQPublisher, error) {
 
 	_, err = channel.QueueDeclare(
 		queueName, // name of the queue
-		false,     // durable
+		true,      // durable
 		false,     // delete when unused
 		false,     // exclusive
 		false,     // no-wait
@@ -55,6 +55,7 @@ func NewRabbitMQPublisher() (*RabbitMQPublisher, error) {
 }
 
 func (r *RabbitMQPublisher) PublishUserCreated(u *CreateUserPublish) error {
+	log.Printf("Publishing user created event for user: %s\n", u.Username)
 	if r.channel == nil {
 		return fmt.Errorf("RabbitMQ channel not initialized")
 	}
@@ -83,5 +84,8 @@ func (r *RabbitMQPublisher) PublishUserCreated(u *CreateUserPublish) error {
 	if err != nil {
 		return fmt.Errorf("failed to publish a message: %w", err)
 	}
+
+	log.Printf("User created event published for user: %s\n", u.Username)
+
 	return nil
 }

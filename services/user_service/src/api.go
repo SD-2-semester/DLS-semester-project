@@ -133,11 +133,12 @@ func (s *APIServer) handleRegisterUser(w http.ResponseWriter, r *http.Request) e
 		return err
 	}
 
-	s.publisher.PublishUserCreated(&CreateUserPublish{
+	publishData := &CreateUserPublish{
 		ID:       user.ID,
 		Username: user.Username,
-		Email:    user.Email,
-	})
+	}
+
+	s.publisher.PublishUserCreated(publishData)
 
 	return WriteJSON(w, http.StatusCreated, user)
 }
@@ -174,7 +175,6 @@ func (s *APIServer) handleHealthCheck(w http.ResponseWriter, _ *http.Request) er
 	s.publisher.PublishUserCreated(&CreateUserPublish{
 		ID:       uuid.New(),
 		Username: "yoyoyo",
-		Email:    "test@gmail.com",
 	})
 	return WriteJSON(w, http.StatusOK, map[string]string{"status": "osks"})
 }

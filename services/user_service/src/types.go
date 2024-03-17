@@ -19,8 +19,8 @@ type CreateUserRequest struct {
 }
 
 type CreateUserPublish struct {
-	ID       uuid.UUID `json:"id"`
-	Username string    `json:"username"`
+	ID       uuid.UUID `json:"user_id"`
+	Username string    `json:"user_name"`
 }
 
 type User struct {

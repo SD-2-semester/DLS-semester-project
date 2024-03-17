@@ -15,7 +15,6 @@ func main() {
 	}
 
 	publisher, err := NewRabbitMQPublisher()
-
 	if err != nil {
 		log.Fatal(err)
 	}
