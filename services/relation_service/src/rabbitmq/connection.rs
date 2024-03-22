@@ -57,6 +57,18 @@ pub async fn create_queue(channel: &Channel, queue_name: &str) {
         .unwrap();
 }
 
+pub async fn create_exchange(channel: &Channel, queue_name: &str) {
+    let queue_options = QueueDeclareOptions {
+        durable: true,
+        ..Default::default()
+    };
+
+    let _queue = channel
+        .queue_declare(queue_name, queue_options, FieldTable::default())
+        .await
+        .unwrap();
+}
+
 /// Create a consumer.
 pub async fn create_consumer(channel: &Channel, queue_name: &str) -> Consumer {
     let tag = format!("tag_{}", queue_name);
