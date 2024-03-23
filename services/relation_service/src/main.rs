@@ -25,8 +25,8 @@ async fn main() -> std::io::Result<()> {
     let connection = rabbitmq::connection::get_connection().await;
     let channel = rabbitmq::connection::channel_rabbitmq(&connection).await;
 
-    // Create queues if they dont exist
-    rabbitmq::connection::create_queue(&channel, "new_relation_queue").await;
+    // Create queues + exchange if they dont exist
+    rabbitmq::connection::create_exchange(&channel, "new_relation_queue").await;
     rabbitmq::connection::create_queue(&channel, "new_user_queue").await;
 
     // Create consumers

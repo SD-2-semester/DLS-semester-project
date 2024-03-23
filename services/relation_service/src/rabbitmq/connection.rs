@@ -5,10 +5,11 @@ use dotenv::dotenv;
 use lapin::{
     message::DeliveryResult,
     options::{
-        BasicAckOptions, BasicConsumeOptions, BasicPublishOptions, QueueDeclareOptions,
+        BasicAckOptions, BasicConsumeOptions, BasicPublishOptions,
+        ExchangeDeclareOptions, QueueDeclareOptions,
     },
     types::FieldTable,
-    BasicProperties, Channel, Connection, ConnectionProperties, Consumer,
+    BasicProperties, Channel, Connection, ConnectionProperties, Consumer, ExchangeKind,
 };
 use neo4rs::Graph;
 use serde::Serialize;
@@ -57,14 +58,19 @@ pub async fn create_queue(channel: &Channel, queue_name: &str) {
         .unwrap();
 }
 
-pub async fn create_exchange(channel: &Channel, queue_name: &str) {
-    let queue_options = QueueDeclareOptions {
+pub async fn create_exchange(channel: &Channel, exchange_name: &str) {
+    let exchange_options = ExchangeDeclareOptions {
         durable: true,
         ..Default::default()
     };
 
     let _queue = channel
-        .queue_declare(queue_name, queue_options, FieldTable::default())
+        .exchange_declare(
+            exchange_name,
+            ExchangeKind::Fanout,
+            exchange_options,
+            FieldTable::default(),
+        )
         .await
         .unwrap();
 }
