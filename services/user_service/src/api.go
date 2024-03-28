@@ -19,12 +19,24 @@ import (
 
 type APIServer struct {
 	listenAddr string
-	store      Storage
+	readStore  ReadStorage
+	writeStore WriteStorage
 	publisher  Publisher
 }
 
-func NewAPIServer(listenAddr string, store Storage, publisher Publisher) *APIServer {
-	return &APIServer{listenAddr: listenAddr, store: store, publisher: publisher}
+func NewAPIServer(
+	listenAddr string,
+	readStore ReadStorage,
+	writeStore WriteStorage,
+	publisher Publisher,
+) *APIServer {
+
+	return &APIServer{
+		listenAddr: listenAddr,
+		readStore:  readStore,
+		writeStore: writeStore,
+		publisher:  publisher,
+	}
 }
 
 // Run starts the API server
@@ -117,7 +129,7 @@ func shutdownGracefully(server *http.Server) {
 // @Success 200 {object} []User
 // @Router /api/v1/users [get]
 func (s *APIServer) handleGetUsers(w http.ResponseWriter, _ *http.Request) error {
-	users, err := s.store.GetUsers()
+	users, err := s.readStore.GetUsers()
 	if err != nil {
 		return err
 	}
@@ -145,7 +157,7 @@ func (s *APIServer) handleRegisterUser(w http.ResponseWriter, r *http.Request) e
 		return err
 	}
 
-	existingUser, _ := s.store.GetUserByEmail(createUserReq.Email)
+	existingUser, _ := s.readStore.GetUserByEmail(createUserReq.Email)
 	if existingUser != nil {
 		return WriteJSON(
 			w,
@@ -160,7 +172,7 @@ func (s *APIServer) handleRegisterUser(w http.ResponseWriter, r *http.Request) e
 		hashedPassword,
 	)
 
-	if err := s.store.CreateUser(user); err != nil {
+	if err := s.writeStore.CreateUser(user); err != nil {
 		return err
 	}
 
@@ -189,7 +201,7 @@ func (s *APIServer) handleLoginEmail(w http.ResponseWriter, r *http.Request) err
 		return err
 	}
 
-	user, err := s.store.GetUserByEmail(loginReq.Email)
+	user, err := s.readStore.GetUserByEmail(loginReq.Email)
 	if err != nil {
 		return WriteJSON(
 			w,
@@ -230,7 +242,7 @@ func (s *APIServer) handleHealthCheck(w http.ResponseWriter, _ *http.Request) er
 // @Failure 400 {object} APIError
 // @Router /api/v1/users/me [get]
 func (s *APIServer) handleGetCurrentUser(w http.ResponseWriter, r *http.Request) error {
-	user, err := currentUserFromJWT(r, s.store)
+	user, err := currentUserFromJWT(r, s.readStore)
 	if err != nil {
 		return err
 	}

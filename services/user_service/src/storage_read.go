@@ -3,37 +3,28 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"log"
-	"os"
 
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 )
 
-type Storage interface {
-	CreateUser(*User) error
+type ReadStorage interface {
 	GetUsers() ([]*User, error)
 	GetUserByID(id uuid.UUID) (*User, error)
 	GetUserByEmail(email string) (*User, error)
 }
 
-type PostgresStore struct {
+type PostgresStore interface{}
+
+type PostgresStoreRead struct {
 	db *sql.DB
 }
 
-func NewPostgresStore() (*PostgresStore, error) {
-	host := os.Getenv("AUTHSERVICE_DB_HOST")
-	user := os.Getenv("AUTHSERVICE_DB_USER")
-	dbname := os.Getenv("AUTHSERVICE_DB_NAME")
-	password := os.Getenv("AUTHSERVICE_DB_PASSWORD")
-	port := os.Getenv("AUTHSERVICE_DB_PORT")
-
-	// Connection string
-	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
-
-	log.Println(psqlInfo)
+func NewPostgresStoreRead(config DBConfig) (*PostgresStoreRead, error) {
+	psqlInfo := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		config.Host, config.Port, config.User, config.Password, config.DBName,
+	)
 
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
@@ -44,14 +35,10 @@ func NewPostgresStore() (*PostgresStore, error) {
 		return nil, err
 	}
 
-	return &PostgresStore{db: db}, nil
+	return &PostgresStoreRead{db: db}, nil
 }
 
-func (s *PostgresStore) Init() error {
-	return s.createUserTable()
-}
-
-func (s *PostgresStore) createUserTable() error {
+func (s *PostgresStoreRead) Init() error {
 	query := `
 		CREATE TABLE IF NOT EXISTS users (
 			id UUID PRIMARY KEY,
@@ -63,20 +50,22 @@ func (s *PostgresStore) createUserTable() error {
 	`
 
 	_, err := s.db.Exec(query)
-	return err
-}
 
-func (s *PostgresStore) CreateUser(u *User) error {
-	query := `
-		INSERT INTO users (id, username, email, password, created_at)
-		VALUES ($1, $2, $3, $4, $5)
+	if err != nil {
+		return err
+	}
+
+	query = `
+		CREATE INDEX IF NOT EXISTS email_idx
+		ON users (email)
 	`
 
-	_, err := s.db.Exec(query, u.ID, u.Username, u.Email, u.Password, u.CreatedAt)
+	_, err = s.db.Exec(query)
+
 	return err
 }
 
-func (s *PostgresStore) GetUsers() ([]*User, error) {
+func (s *PostgresStoreRead) GetUsers() ([]*User, error) {
 	query := `
 		SELECT id, username, email, created_at
 		FROM users
@@ -101,7 +90,7 @@ func (s *PostgresStore) GetUsers() ([]*User, error) {
 	return users, nil
 }
 
-func (s *PostgresStore) GetUserByID(id uuid.UUID) (*User, error) {
+func (s *PostgresStoreRead) GetUserByID(id uuid.UUID) (*User, error) {
 	query := `
 		SELECT id, username, email, created_at
 		FROM users
@@ -120,7 +109,7 @@ func (s *PostgresStore) GetUserByID(id uuid.UUID) (*User, error) {
 	return nil, fmt.Errorf("user %d not found", id)
 }
 
-func (s *PostgresStore) GetUserByEmail(email string) (*User, error) {
+func (s *PostgresStoreRead) GetUserByEmail(email string) (*User, error) {
 	query := `
 		SELECT *
 		FROM users
