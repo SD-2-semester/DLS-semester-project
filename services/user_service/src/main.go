@@ -29,7 +29,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	publisher, err := NewRabbitMQPublisher()
+	publisher, err := NewRabbitMQPublisher(
+		LoadRabbitMQConfig(),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
