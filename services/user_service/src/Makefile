@@ -5,7 +5,7 @@ run-b: build
 	@./bin/user_service
 
 run:
-	@docker-compose up
+	@docker-compose up --build
 
 test:
 	@go test -v ./...
@@ -16,3 +16,6 @@ lint:
 
 fmt:
 	@go fmt ./...
+
+swag:
+	@swag init -g api.go

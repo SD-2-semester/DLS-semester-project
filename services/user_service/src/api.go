@@ -12,6 +12,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+
+	_ "github.com/SD-2-semester/DLS-semester-project/services/user_service/src/docs"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type APIServer struct {
@@ -27,8 +30,6 @@ func NewAPIServer(listenAddr string, store Storage, publisher Publisher) *APISer
 // Run starts the API server
 func (s *APIServer) Run() {
 	router := mux.NewRouter()
-
-	// yo
 
 	server := &http.Server{
 		Addr:         s.listenAddr,
@@ -51,30 +52,38 @@ func (s *APIServer) Run() {
 }
 
 func (s *APIServer) setupRoutes(router *mux.Router) {
-	router.Use(LogMiddleware)
+	apiRouter := router.PathPrefix("/api/v1").Subrouter()
+
+	apiRouter.Use(LogMiddleware)
 
 	// health check
-	router.HandleFunc(
+	apiRouter.HandleFunc(
 		"/health", makeHTTPHandleFunc(s.handleHealthCheck),
 	).Methods(http.MethodGet)
 
 	// user endpoints
-	router.HandleFunc(
+	apiRouter.HandleFunc(
 		"/users", makeHTTPHandleFunc(s.handleGetUsers),
 	).Methods(http.MethodGet)
 
-	router.HandleFunc(
+	apiRouter.HandleFunc(
 		"/users/me", makeHTTPHandleFunc(s.handleGetCurrentUser),
 	).Methods(http.MethodGet)
 
 	// auth endpoints
-	router.HandleFunc(
+	apiRouter.HandleFunc(
 		"/auth/login-email", makeHTTPHandleFunc(s.handleLoginEmail),
 	).Methods(http.MethodPost)
 
-	router.HandleFunc(
+	apiRouter.HandleFunc(
 		"/auth/register", makeHTTPHandleFunc(s.handleRegisterUser),
 	).Methods(http.MethodPost)
+
+	// swagger docs
+	// http://localhost:8080/swagger/index.html
+	router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8080/swagger/doc.json"),
+	)).Methods(http.MethodGet)
 
 	// default handler for unmatched routes
 	router.PathPrefix("/").HandlerFunc(s.logUnmatchedRequest)
@@ -102,6 +111,11 @@ func shutdownGracefully(server *http.Server) {
 	log.Println("Server gracefully stopped.")
 }
 
+// @Summary Get all users
+// @Tags users
+// @Produce json
+// @Success 200 {object} []User
+// @Router /api/v1/users [get]
 func (s *APIServer) handleGetUsers(w http.ResponseWriter, _ *http.Request) error {
 	users, err := s.store.GetUsers()
 	if err != nil {
@@ -111,6 +125,14 @@ func (s *APIServer) handleGetUsers(w http.ResponseWriter, _ *http.Request) error
 	return WriteJSON(w, http.StatusOK, users)
 }
 
+// @Summary Register a new user
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param user body CreateUserRequest true "User data"
+// @Success 201 {object} DefaultCreatedResponse
+// @Failure 400 {object} APIError
+// @Router /api/v1/auth/register [post]
 func (s *APIServer) handleRegisterUser(w http.ResponseWriter, r *http.Request) error {
 	createUserReq := new(CreateUserRequest)
 
@@ -121,6 +143,15 @@ func (s *APIServer) handleRegisterUser(w http.ResponseWriter, r *http.Request) e
 	hashedPassword, err := hashPassword(createUserReq.Password)
 	if err != nil {
 		return err
+	}
+
+	existingUser, _ := s.store.GetUserByEmail(createUserReq.Email)
+	if existingUser != nil {
+		return WriteJSON(
+			w,
+			http.StatusBadRequest,
+			APIError{Error: "user with this email already exists"},
+		)
 	}
 
 	user := NewUser(
@@ -140,14 +171,18 @@ func (s *APIServer) handleRegisterUser(w http.ResponseWriter, r *http.Request) e
 
 	s.publisher.PublishUserCreated(publishData)
 
-	return WriteJSON(w, http.StatusCreated, user)
+	return WriteJSON(w, http.StatusCreated, DefaultCreatedResponse{ID: user.ID})
 }
 
+// @Summary Login with email and password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param user body LoginEmailRequest true "User data"
+// @Success 200 {object} LoginResponse
+// @Failure 400 {object} APIError
+// @Router /api/v1/auth/login-email [post]
 func (s *APIServer) handleLoginEmail(w http.ResponseWriter, r *http.Request) error {
-	if r.Method != "POST" {
-		return fmt.Errorf("unsupported method %s", r.Method)
-	}
-
 	loginReq := new(LoginEmailRequest)
 
 	if err := json.NewDecoder(r.Body).Decode(loginReq); err != nil {
@@ -156,7 +191,11 @@ func (s *APIServer) handleLoginEmail(w http.ResponseWriter, r *http.Request) err
 
 	user, err := s.store.GetUserByEmail(loginReq.Email)
 	if err != nil {
-		return err
+		return WriteJSON(
+			w,
+			http.StatusBadRequest,
+			APIError{Error: "invalid email or password"},
+		)
 	}
 
 	if !checkPasswordHash(loginReq.Password, user.Password) {
@@ -168,17 +207,28 @@ func (s *APIServer) handleLoginEmail(w http.ResponseWriter, r *http.Request) err
 		return err
 	}
 
-	return WriteJSON(w, http.StatusOK, map[string]string{"access_token": token})
+	return WriteJSON(w, http.StatusOK, LoginResponse{AccessToken: token})
 }
 
+// @Summary Health check
+// @Tags health
+// @Produce json
+// @Success 200 {object} map[string]string
+// @Router /api/v1/health [get]
 func (s *APIServer) handleHealthCheck(w http.ResponseWriter, _ *http.Request) error {
 	s.publisher.PublishUserCreated(&CreateUserPublish{
 		ID:       uuid.New(),
 		Username: "yoyoyo",
 	})
-	return WriteJSON(w, http.StatusOK, map[string]string{"status": "osks"})
+	return WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
+// @Summary Get current user
+// @Tags auth
+// @Produce json
+// @Success 200 {object} User
+// @Failure 400 {object} APIError
+// @Router /api/v1/users/me [get]
 func (s *APIServer) handleGetCurrentUser(w http.ResponseWriter, r *http.Request) error {
 	user, err := currentUserFromJWT(r, s.store)
 	if err != nil {

@@ -13,6 +13,8 @@ import (
 const (
 	rabbitMQURL = "amqp://user:password@rabbitmq:5672/"
 	queueName   = "new_user_queue"
+	maxRetries  = 20
+	retryDelay  = 2 * time.Second
 )
 
 type Publisher interface {
@@ -26,12 +28,33 @@ type RabbitMQPublisher struct {
 
 func NewRabbitMQPublisher() (*RabbitMQPublisher, error) {
 	log.Println("Initializing RabbitMQ publisher...")
-	conn, err := amqp.Dial(rabbitMQURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to RabbitMQ: %w", err)
+
+	var conn *amqp.Connection
+	var err error
+
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		log.Printf(
+			"Attempting to connect to RabbitMQ, attempt %d/%d\n", attempt, maxRetries,
+		)
+		conn, err = amqp.Dial(rabbitMQURL)
+		if err == nil {
+			log.Println("RabbitMQ connection established")
+			break
+		}
+
+		log.Printf("Failed to connect to RabbitMQ: %v\n", err)
+		if attempt < maxRetries {
+			log.Printf("Retrying in %v...\n", retryDelay)
+			time.Sleep(retryDelay)
+		} else {
+			return nil, fmt.Errorf(
+				"failed to connect to RabbitMQ after %d attempts: %w", maxRetries, err,
+			)
+		}
 	}
-	log.Println("RabbitMQ connection established")
+
 	channel, err := conn.Channel()
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to open a channel: %w", err)
 	}

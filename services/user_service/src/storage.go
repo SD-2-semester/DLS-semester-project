@@ -55,7 +55,7 @@ func (s *PostgresStore) createUserTable() error {
 	query := `
 		CREATE TABLE IF NOT EXISTS users (
 			id UUID PRIMARY KEY,
-			username VARCHAR(50) UNIQUE,
+			username VARCHAR(50),
 			email VARCHAR(255) UNIQUE,
 			password VARCHAR(255),
 			created_at TIMESTAMP
