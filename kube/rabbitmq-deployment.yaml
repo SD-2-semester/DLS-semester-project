@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq-deploy
+  labels:
+    name: rabbitmq-deploy
+    app: g-chat-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: rabbitmq-pod
+      micro-service: rabbitmq-service
+      app: g-chat-app
+  template:
+    metadata:
+      name: rabbitmq-pod
+      labels:
+        name: rabbitmq-pod
+        micro-service: rabbitmq-service
+        app: g-chat-app
+    spec:
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:3-management
+          ports:
+            - containerPort: 5672
+            - containerPort: 15672
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              value: user
+            - name: RABBITMQ_DEFAULT_PASS
+              value: password
