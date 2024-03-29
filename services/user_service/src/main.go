@@ -1,41 +1,24 @@
 package main
 
-import "os"
+import "log"
 
 func main() {
-	a := App{}
-	a.Initialize(
-		os.Getenv("APP_DB_USERNAME"),
-		os.Getenv("APP_DB_PASSWORD"),
-		os.Getenv("APP_DB_NAME"),
-	)
+	log.Printf("Starting user service...\n")
 
-	a.Run(":8080")
+	store, err := NewPostgresStore()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// r := mux.NewRouter()
+	if err := store.Init(); err != nil {
+		log.Fatal(err)
+	}
 
-	// srv := &http.Server{
-	// 	Handler:      r,
-	// 	Addr:         "localhost:8080",
-	// 	WriteTimeout: 15 * time.Second,
-	// 	ReadTimeout:  15 * time.Second,
-	// }
+	publisher, err := NewRabbitMQPublisher()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// go func() {
-	// 	if err := srv.ListenAndServe(); err != nil {
-	// 		log.Println(err)
-	// 	}
-	// }()
-
-	// c := make(chan os.Signal, 1)
-	// signal.Notify(c, os.Interrupt)
-	// // block until a signal is received.
-	// <-c
-
-	// ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	// defer cancel()
-
-	// srv.Shutdown(ctx)
-
-	// log.Println("shutting down")
+	server := NewAPIServer(":8080", store, publisher)
+	server.Run()
 }
