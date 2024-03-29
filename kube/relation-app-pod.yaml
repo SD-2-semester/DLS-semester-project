@@ -3,18 +3,29 @@ kind: Pod
 metadata:
   name: relation-app-pod
   labels:
-    name: rabbitmq-pod
-    micro-service: rabbitmq-service
+    name: relation-app-pod
+    micro-service: relation-service
     app: g-chat-app
 spec:
   containers:
-    - name: rabbitmq
-      image: rabbitmq:3-management
+    - name: relation-app
+      image: moshizzl3/relation-service:latest
       ports:
-        - containerPort: 5672
-        - containerPort: 15672
+        - containerPort: 8000
       env:
-        - name: RABBITMQ_DEFAULT_USER
-          value: user
-        - name: RABBITMQ_DEFAULT_PASS
+        - name: NEO4J_URI
+          value: bolt://neo4j-db:7687
+        - name: NEO4J_USER
+          value: neo4j
+        - name: NEO4J_PASSWORD
           value: password
+        - name: NEO4J_DB
+          value: neo4j        
+        - name: AMQP_USER
+          value: user
+        - name: AMQP_PASSWORD
+          value: password
+        - name: AMQP_HOST
+          value: message-broker
+        - name: AMQP_PORT
+          value: "5672"

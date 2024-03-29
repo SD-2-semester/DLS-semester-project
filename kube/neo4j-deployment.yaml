@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neo4j-deploy
+  labels:
+    name: neo4j-deploy
+    app: g-chat-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: neo4j-pod
+      micro-service: neo4j-service
+      app: g-chat-app
+  template:
+    metadata:
+      name: neo4j-pod
+      labels:
+        name: neo4j-pod
+        micro-service: neo4j-service
+        app: g-chat-app
+    spec:
+      containers:
+        - name: neo4j
+          image: neo4j:latest
+          ports:
+            - containerPort: 7474
+            - containerPort: 7687
+          env:
+            - name: NEO4J_AUTH
+              value: neo4j/password
