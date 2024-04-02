@@ -12,6 +12,10 @@ type LoginEmailRequest struct {
 	Password string `json:"password"`
 }
 
+type LoginResponse struct {
+	AccessToken string `json:"access_token"`
+}
+
 type CreateUserRequest struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
@@ -21,6 +25,10 @@ type CreateUserRequest struct {
 type CreateUserPublish struct {
 	ID       uuid.UUID `json:"user_id"`
 	Username string    `json:"user_name"`
+}
+
+type DefaultCreatedResponse struct {
+	ID uuid.UUID `json:"id"`
 }
 
 type User struct {

@@ -62,7 +62,7 @@ func validateJWT(tokenString string) (*jwt.Token, error) {
 	})
 }
 
-func currentUserFromJWT(r *http.Request, store Storage) (*User, error) {
+func currentUserFromJWT(r *http.Request, store ReadStorage) (*User, error) {
 	tokenString := r.Header.Get("Authorization")
 	token, err := validateJWT(tokenString)
 	if err != nil {
