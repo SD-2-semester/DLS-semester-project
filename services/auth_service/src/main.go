@@ -2,8 +2,17 @@ package main
 
 import (
 	"log"
+
+	_ "github.com/SD-2-semester/DLS-semester-project/services/auth_service/src/docs"
 )
 
+// @title API
+// @version 1.0
+// @description This is a simple auth service.
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
+// @BasePath /api/v1
 func main() {
 	log.Printf("Starting auth service...\n")
 

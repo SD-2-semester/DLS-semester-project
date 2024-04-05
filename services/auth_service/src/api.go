@@ -131,7 +131,7 @@ func shutdownGracefully(server *http.Server) {
 // @Summary Get all users
 // @Tags users
 // @Produce json
-// @Success 200 {object} []User
+// @Success 200 {object} []UserResponse
 // @Router /api/v1/users [get]
 func (s *APIServer) handleGetUsers(w http.ResponseWriter, _ *http.Request) error {
 	users, err := s.readStore.GetUsers()
@@ -139,7 +139,17 @@ func (s *APIServer) handleGetUsers(w http.ResponseWriter, _ *http.Request) error
 		return err
 	}
 
-	return WriteJSON(w, http.StatusOK, users)
+	userResponse := make([]UserResponse, 0, len(users))
+	for _, user := range users {
+		userResponse = append(userResponse, UserResponse{
+			ID:        user.ID,
+			Username:  user.Username,
+			Email:     user.Email,
+			CreatedAt: user.CreatedAt,
+		})
+	}
+
+	return WriteJSON(w, http.StatusOK, userResponse)
 }
 
 // @Summary Register a new user
@@ -164,11 +174,7 @@ func (s *APIServer) handleRegisterUser(w http.ResponseWriter, r *http.Request) e
 
 	existingUser, _ := s.readStore.GetUserByEmail(createUserReq.Email)
 	if existingUser != nil {
-		return WriteJSON(
-			w,
-			http.StatusBadRequest,
-			APIError{Error: "user with this email already exists"},
-		)
+		return BadRequestResponse(w, "user with this email already exists")
 	}
 
 	user := NewUser(
@@ -239,9 +245,9 @@ func (s *APIServer) handleHealthCheck(w http.ResponseWriter, _ *http.Request) er
 // @Summary Get current user
 // @Tags users
 // @Produce json
-// @Success 200 {object} User
+// @Success 200 {object} UserResponse
 // @Failure 400 {object} APIError
-// @securitydefinitions.oauth2.password OAuth2Password
+// @Security ApiKeyAuth
 // @Router /api/v1/users/me [get]
 func (s *APIServer) handleGetCurrentUser(w http.ResponseWriter, r *http.Request) error {
 	user, err := currentUserFromJWT(r, s.readStore)
@@ -249,7 +255,14 @@ func (s *APIServer) handleGetCurrentUser(w http.ResponseWriter, r *http.Request)
 		return err
 	}
 
-	return WriteJSON(w, http.StatusOK, user)
+	userResponse := &UserResponse{
+		ID:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
+		CreatedAt: user.CreatedAt,
+	}
+
+	return WriteJSON(w, http.StatusOK, userResponse)
 }
 
 // @Summary Delete current user
@@ -257,6 +270,7 @@ func (s *APIServer) handleGetCurrentUser(w http.ResponseWriter, r *http.Request)
 // @Produce json
 // @Success 200 {object} APISuccess
 // @Failure 400 {object} APIError
+// @Security ApiKeyAuth
 // @Router /api/v1/users/me [delete]
 func (s *APIServer) handleDeleteCurrentUser(
 	w http.ResponseWriter,
@@ -291,10 +305,22 @@ func BadRequestResponse(w http.ResponseWriter, message string) error {
 func makeHTTPHandleFunc(f APIFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := f(w, r); err != nil {
-			err := WriteJSON(w, http.StatusBadRequest, APIError{Error: err.Error()})
+			//err := WriteJSON(w, http.StatusBadRequest, APIError{Error: err.Error()})
+			err := BadRequestResponse(w, err.Error())
 			if err != nil {
 				log.Printf("failed to write error response: %v", err)
 			}
 		}
 	}
+}
+
+type APIFunc func(w http.ResponseWriter, r *http.Request) error
+
+type APIError struct {
+	Error string `json:"error"`
+}
+
+type APISuccess struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
 }

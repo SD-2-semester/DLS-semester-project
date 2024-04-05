@@ -18,4 +18,4 @@ fmt:
 	@go fmt ./...
 
 swag:
-	@swag init -g api.go
+	@swag init
