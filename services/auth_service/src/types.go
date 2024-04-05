@@ -1,7 +1,6 @@
 package main
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/google/uuid"
@@ -49,13 +48,9 @@ func NewUser(username, email, password string) *User {
 	}
 }
 
-type APIFunc func(w http.ResponseWriter, r *http.Request) error
-
-type APIError struct {
-	Error string `json:"error"`
-}
-
-type APISuccess struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
+type UserResponse struct {
+	ID        uuid.UUID `json:"id"`
+	Username  string    `json:"username"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"created_at"`
 }

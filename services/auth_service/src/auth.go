@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -64,6 +65,13 @@ func validateJWT(tokenString string) (*jwt.Token, error) {
 
 func currentUserFromJWT(r *http.Request, store ReadStorage) (*User, error) {
 	tokenString := r.Header.Get("Authorization")
+
+	if tokenString == "" {
+		return nil, fmt.Errorf("missing token")
+	}
+
+	log.Println("tokenString: ", tokenString)
+
 	token, err := validateJWT(tokenString)
 	if err != nil {
 		return nil, err
