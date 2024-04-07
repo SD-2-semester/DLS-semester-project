@@ -9,12 +9,12 @@ metadata:
 spec:
   containers:
     - name: relation-app
-      image: moshizzl3/relation-service:latest
+      image: moshizzl3/relation-service-local:latest
       ports:
         - containerPort: 8000
       env:
         - name: NEO4J_URI
-          value: bolt://db-neo4j:7687
+          value: bolt://db-neo4j:7687 # service name
         - name: NEO4J_USER
           value: neo4j
         - name: NEO4J_PASSWORD
@@ -26,6 +26,6 @@ spec:
         - name: AMQP_PASSWORD
           value: password
         - name: AMQP_HOST
-          value: message-broker
+          value: message-broker # service name
         - name: AMQP_PORT
           value: "5672"

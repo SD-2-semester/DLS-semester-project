@@ -5,7 +5,7 @@ from api.routes.notifications.ws_connection_manager import ws_manager
 
 
 async def get_rabbitmq_connection() -> RobustConnection:
-    # Modify the connection string as needed
+    """Get a connection to the message broker."""
     return await connect("amqp://user:password@localhost/")
 
 
