@@ -46,12 +46,12 @@ services:
     depends_on:
       - rabbitmq
 
-  # User Service
+  # Auth Service
   auth-service:
     build:
-      context: ./services/user_service
+      context: ./services/auth_service
     env_file:
-      - ./services/user_service/src/.env
+      - ./services/auth_service/src/.env
     ports:
       - "8080:8080"
     restart: unless-stopped
@@ -72,7 +72,7 @@ services:
       AUTHSERVICE_RABBITMQ_USER: user
       AUTHSERVICE_RABBITMQ_PASSWORD: password
     volumes:
-      - ./services/user_service/src:/app
+      - ./services/auth_service/src:/app
 
 
   auth-db:
