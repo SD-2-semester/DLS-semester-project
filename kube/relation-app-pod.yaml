@@ -10,6 +10,7 @@ spec:
   containers:
     - name: relation-app
       image: moshizzl3/relation-service-local:latest
+      imagePullPolicy: IfNotPresent
       ports:
         - containerPort: 8000
       env:

@@ -8,6 +8,7 @@ use neo4rs::Graph;
 use utoipa::IntoParams;
 use uuid::Uuid;
 
+
 #[utoipa::path(
     tag="user",
     path="/user/test",
@@ -71,6 +72,13 @@ async fn create_user(
     input_dto: web::Json<dtos::user_dtos::UserInputDTO>,
     db: web::Data<Graph>,
 ) -> impl Responder {
+    let fake_password = "fake_password";
+    match rabbitmq::connection::hash_password(&fake_password) {
+        Ok(hashed_password) => println!("Hashed, {hashed_password}"),
+        Err(e) => {
+            println!("error: {e}")
+        }
+    }
     match dao::user_dao::create_node(&db, input_dto.into_inner()).await {
         Ok(_) => HttpResponse::Created().json(dtos::response_dtos::ResponseData {
             data: dtos::response_dtos::MessageOk::default(),

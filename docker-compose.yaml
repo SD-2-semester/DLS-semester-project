@@ -1,6 +1,5 @@
 version: "3.9"
 services:
-
   # Relation Service
   app:
     container_name: relation_service
@@ -49,9 +48,8 @@ services:
   # Auth Service
   auth-service:
     build:
-      context: ./services/auth_service
-    env_file:
-      - ./services/auth_service/src/.env
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
     restart: unless-stopped
@@ -60,20 +58,23 @@ services:
       - rabbitmq
     environment:
       AUTHSERVICE_HOST: 0.0.0.0
-      # Database
-      AUTHSERVICE_DB_HOST: auth-db
-      AUTHSERVICE_DB_PORT: 5432
-      AUTHSERVICE_DB_USER: auth
-      AUTHSERVICE_DB_PASSWORD: auth
-      AUTHSERVICE_DB_NAME: auth
+      # Database Read
+      AUTHSERVICE_RO_DB_HOST: auth-db
+      AUTHSERVICE_RO_DB_PORT: 5432
+      AUTHSERVICE_RO_DB_USER: auth
+      AUTHSERVICE_RO_DB_PASSWORD: auth
+      AUTHSERVICE_RO_DB_NAME: auth
+      # Database Write
+      AUTHSERVICE_WO_DB_HOST: auth-db
+      AUTHSERVICE_WO_DB_PORT: 5432
+      AUTHSERVICE_WO_DB_USER: auth
+      AUTHSERVICE_WO_DB_PASSWORD: auth
+      AUTHSERVICE_WO_DB_NAME: auth
       # RabbitMQ
       AUTHSERVICE_RABBITMQ_HOST: rabbitmq
       AUTHSERVICE_RABBITMQ_PORT: 5672
       AUTHSERVICE_RABBITMQ_USER: user
       AUTHSERVICE_RABBITMQ_PASSWORD: password
-    volumes:
-      - ./services/auth_service/src:/app
-
 
   auth-db:
     image: postgres:16
