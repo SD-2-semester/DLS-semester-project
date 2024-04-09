@@ -21,8 +21,10 @@ services:
       - neo4j
       - rabbitmq
     volumes:
-      - ./services/relation_service/src:/relation_service/src
+      - ./services/relation_service:/relation_service
+    # command: cargo watch -x run
 
+  # neo4j
   neo4j:
     image: neo4j:latest
     container_name: neo4j
@@ -48,8 +50,9 @@ services:
   # Auth Service
   auth-service:
     build:
-      context: .
+      context: ./services/auth_service
       dockerfile: Dockerfile
+      target: dev
     ports:
       - "8080:8080"
     restart: unless-stopped
@@ -105,7 +108,7 @@ services:
       RABBITMQ_DEFAULT_USER: "user"
       RABBITMQ_DEFAULT_PASS: "password"
     volumes:
-      - "rabbitmq_data:/var/lib/rabbitmq"
+      - rabbitmq_data:/var/lib/rabbitmq
 
 volumes:
   neo4j-data:
