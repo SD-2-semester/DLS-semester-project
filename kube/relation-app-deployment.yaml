@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: relation-app-deploy
+  labels:
+    name: relation-app-deploy
+    app: g-chat-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: relation-app-pod
+      micro-service: relation-service
+      app: g-chat-app
+  template:
+    metadata:
+      name: relation-app-pod
+      labels:
+        name: relation-app-pod
+        micro-service: relation-service
+        app: g-chat-app
+    spec:
+      containers:
+        - name: relation-app
+          image: moshizzl3/relation-service-local:latest
+          imagePullPolicy: IfNotPresent # for using local repo or we can use "Never"
+          ports:
+            - containerPort: 8000
+          env:
+            - name: NEO4J_URI
+              value: bolt://db-neo4j:7687 # service name
+            - name: NEO4J_USER
+              value: neo4j
+            - name: NEO4J_PASSWORD
+              value: password
+            - name: NEO4J_DB
+              value: neo4j        
+            - name: AMQP_USER
+              value: user
+            - name: AMQP_PASSWORD
+              value: password
+            - name: AMQP_HOST
+              value: message-broker # service name
+            - name: AMQP_PORT
+              value: "5672"

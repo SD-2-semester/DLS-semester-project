@@ -1,14 +1,16 @@
 use crate::dao;
 use crate::dtos::user_dtos::UserInputDTO;
 use actix_web::web;
+use bcrypt::hash;
 use dotenv::dotenv;
 use lapin::{
     message::DeliveryResult,
     options::{
-        BasicAckOptions, BasicConsumeOptions, BasicPublishOptions, QueueDeclareOptions,
+        BasicAckOptions, BasicConsumeOptions, BasicPublishOptions,
+        ExchangeDeclareOptions, QueueDeclareOptions,
     },
     types::FieldTable,
-    BasicProperties, Channel, Connection, ConnectionProperties, Consumer,
+    BasicProperties, Channel, Connection, ConnectionProperties, Consumer, ExchangeKind,
 };
 use neo4rs::Graph;
 use serde::Serialize;
@@ -53,6 +55,23 @@ pub async fn create_queue(channel: &Channel, queue_name: &str) {
 
     let _queue = channel
         .queue_declare(queue_name, queue_options, FieldTable::default())
+        .await
+        .unwrap();
+}
+
+pub async fn create_exchange(channel: &Channel, exchange_name: &str) {
+    let exchange_options = ExchangeDeclareOptions {
+        durable: true,
+        ..Default::default()
+    };
+
+    let _queue = channel
+        .exchange_declare(
+            exchange_name,
+            ExchangeKind::Fanout,
+            exchange_options,
+            FieldTable::default(),
+        )
         .await
         .unwrap();
 }
@@ -119,6 +138,13 @@ pub async fn print_result(consumer: &Consumer) {
 /// Create a new user in the database, by consuming message.
 /// We use db from app state.
 pub async fn create_new_user(consumer: &Consumer, db: web::Data<Graph>) {
+    let fake_password = "fake_password";
+    match hash_password(&fake_password) {
+        Ok(hashed_password) => println!("Hashed, {hashed_password}"),
+        Err(e) => {
+            println!("error: {e}")
+        }
+    }
     consumer.set_delegate(move |delivery: DeliveryResult| {
         let db_clone = db.clone();
         async move {
@@ -136,6 +162,7 @@ pub async fn create_new_user(consumer: &Consumer, db: web::Data<Graph>) {
                     serde_json::from_str::<UserInputDTO>(payload_str)
                 {
                     dao::user_dao::create_node(&db_clone, user_input_dto).await;
+                    println!("created: {:?}", payload_str)
                 }
             }
 
@@ -145,4 +172,8 @@ pub async fn create_new_user(consumer: &Consumer, db: web::Data<Graph>) {
                 .expect("Failed to ack send_webhook_event message");
         }
     });
+}
+
+pub fn hash_password(password: &str) -> Result<String, bcrypt::BcryptError> {
+    hash(password, 4)
 }

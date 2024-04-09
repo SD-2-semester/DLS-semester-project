@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "notification-service"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "notification_service"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.110.0"
+uvicorn = "^0.28.0"
+websockets = "^12.0"
+pika = "^1.3.2"
+aio-pika = "^9.4.1"
+aioredis = "^2.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

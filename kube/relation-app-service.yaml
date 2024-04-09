@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: relation-app-service
+  labels:
+    name: relation-app-service
+    micro-service: relation-service
+    app: g-chat-app
+spec:
+  type: NodePort
+  selector:
+    name: relation-app-pod
+    micro-service: relation-service
+    app: g-chat-app
+  ports:
+    - port: 8000
+      targetPort: 8000
+      nodePort: 30005

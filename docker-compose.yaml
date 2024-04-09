@@ -1,6 +1,5 @@
-version: '3.9'
+version: "3.9"
 services:
-
   # Relation Service
   app:
     container_name: relation_service
@@ -22,8 +21,10 @@ services:
       - neo4j
       - rabbitmq
     volumes:
-      - ./services/relation_service/src:/relation_service/src
+      - ./services/relation_service:/relation_service
+    # command: cargo watch -x run
 
+  # neo4j
   neo4j:
     image: neo4j:latest
     container_name: neo4j
@@ -50,8 +51,8 @@ services:
   auth-service:
     build:
       context: ./services/auth_service
-    env_file:
-      - ./services/auth_service/src/.env
+      dockerfile: Dockerfile
+      target: dev
     ports:
       - "8080:8080"
     restart: unless-stopped
@@ -60,20 +61,23 @@ services:
       - rabbitmq
     environment:
       AUTHSERVICE_HOST: 0.0.0.0
-      # Database
-      AUTHSERVICE_DB_HOST: auth-db
-      AUTHSERVICE_DB_PORT: 5432
-      AUTHSERVICE_DB_USER: auth
-      AUTHSERVICE_DB_PASSWORD: auth
-      AUTHSERVICE_DB_NAME: auth
+      # Database Read
+      AUTHSERVICE_RO_DB_HOST: auth-db
+      AUTHSERVICE_RO_DB_PORT: 5432
+      AUTHSERVICE_RO_DB_USER: auth
+      AUTHSERVICE_RO_DB_PASSWORD: auth
+      AUTHSERVICE_RO_DB_NAME: auth
+      # Database Write
+      AUTHSERVICE_WO_DB_HOST: auth-db
+      AUTHSERVICE_WO_DB_PORT: 5432
+      AUTHSERVICE_WO_DB_USER: auth
+      AUTHSERVICE_WO_DB_PASSWORD: auth
+      AUTHSERVICE_WO_DB_NAME: auth
       # RabbitMQ
       AUTHSERVICE_RABBITMQ_HOST: rabbitmq
       AUTHSERVICE_RABBITMQ_PORT: 5672
       AUTHSERVICE_RABBITMQ_USER: user
       AUTHSERVICE_RABBITMQ_PASSWORD: password
-    volumes:
-      - ./services/auth_service/src:/app
-
 
   auth-db:
     image: postgres:16
@@ -96,16 +100,15 @@ services:
 
   # Misc
   rabbitmq:
-      image: "rabbitmq:3-management"
-      ports:
-        - "5672:5672" # RabbitMQ server
-        - "15672:15672" # Management console
-      environment:
-        RABBITMQ_DEFAULT_USER: "user"
-        RABBITMQ_DEFAULT_PASS: "password"
-      volumes:
-        - "rabbitmq_data:/var/lib/rabbitmq"
-
+    image: "rabbitmq:3-management"
+    ports:
+      - "5672:5672" # RabbitMQ server
+      - "15672:15672" # Management console
+    environment:
+      RABBITMQ_DEFAULT_USER: "user"
+      RABBITMQ_DEFAULT_PASS: "password"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
 
 volumes:
   neo4j-data:
