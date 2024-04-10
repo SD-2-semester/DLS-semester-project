@@ -11,14 +11,14 @@ from httpx import AsyncClient
 from aio_pika import Channel
 from aio_pika.abc import AbstractExchange, AbstractQueue
 from aio_pika.pool import Pool
-from src.services.rabbit.dependencies import get_rmq_channel_pool
-from src.services.rabbit.lifetime import (
+from chat_service.services.rabbit.dependencies import get_rmq_channel_pool
+from chat_service.services.rabbit.lifetime import (
     init_rabbit,
     shutdown_rabbit,
 )
 
-from src.settings import settings
-from src.web.application import get_app
+from chat_service.settings import settings
+from chat_service.web.application import get_app
 from sqlalchemy.ext.asyncio import (
     AsyncConnection,
     AsyncEngine,
@@ -26,8 +26,8 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
-from src.db.dependencies import get_db_session
-from src.db.utils import create_database, drop_database
+from chat_service.db.dependencies import get_db_session
+from chat_service.db.utils import create_database, drop_database
 
 
 @pytest.fixture(scope="session")
@@ -47,8 +47,8 @@ async def _engine() -> AsyncGenerator[AsyncEngine, None]:
 
     :yield: new engine.
     """
-    from src.db.meta import meta  # noqa: WPS433
-    from src.db.models import load_all_models  # noqa: WPS433
+    from chat_service.db.meta import meta  # noqa: WPS433
+    from chat_service.db.models import load_all_models  # noqa: WPS433
 
     load_all_models()
 

@@ -2,7 +2,7 @@ import os
 import shutil
 
 import uvicorn
-from src.settings import settings
+from chat_service.settings import settings
 
 
 def main() -> None:

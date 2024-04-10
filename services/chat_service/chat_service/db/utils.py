@@ -4,7 +4,7 @@ from sqlalchemy import text
 from sqlalchemy.engine import URL, make_url
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from src.settings import settings
+from chat_service.settings import settings
 
 
 async def create_database() -> None:

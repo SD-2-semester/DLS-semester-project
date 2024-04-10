@@ -1,8 +1,8 @@
 from aio_pika import Channel, Message
 from aio_pika.pool import Pool
 from fastapi import APIRouter, Depends
-from src.services.rabbit.dependencies import get_rmq_channel_pool
-from src.web.api.rabbit.schema import RMQMessageDTO
+from chat_service.services.rabbit.dependencies import get_rmq_channel_pool
+from chat_service.web.api.rabbit.schema import RMQMessageDTO
 
 router = APIRouter()
 

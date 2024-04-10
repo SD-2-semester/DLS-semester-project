@@ -1,7 +1,7 @@
 from fastapi.routing import APIRouter
-from src.web.api import echo
-from src.web.api import rabbit
-from src.web.api import monitoring
+from chat_service.web.api import echo
+from chat_service.web.api import rabbit
+from chat_service.web.api import monitoring
 
 api_router = APIRouter()
 api_router.include_router(monitoring.router)

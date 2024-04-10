@@ -13,7 +13,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      rmq:
+      rabbitmq:
         condition: service_healthy
     environment:
       CHAT_SERVICE_HOST: 0.0.0.0

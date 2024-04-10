@@ -2,15 +2,15 @@ import logging
 from typing import Awaitable, Callable
 
 from fastapi import FastAPI
-from src.settings import settings
-from src.services.rabbit.lifetime import (
+from chat_service.settings import settings
+from chat_service.services.rabbit.lifetime import (
     init_rabbit,
     shutdown_rabbit,
 )
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from src.db.meta import meta
-from src.db.models import load_all_models
+from chat_service.db.meta import meta
+from chat_service.db.models import load_all_models
 
 
 def _setup_db(app: FastAPI) -> None:  # pragma: no cover
