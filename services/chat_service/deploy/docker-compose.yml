@@ -1,0 +1,59 @@
+version: '3.9'
+
+services:
+  api: &main_app
+    build:
+      context: .
+      dockerfile: ./deploy/Dockerfile
+      target: prod
+    image: chat_service:${CHAT_SERVICE_VERSION:-latest}
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      rmq:
+        condition: service_healthy
+    environment:
+      CHAT_SERVICE_HOST: 0.0.0.0
+      CHAT_SERVICE_DB_HOST: chat_service-db
+      CHAT_SERVICE_DB_PORT: 5432
+      CHAT_SERVICE_DB_USER: chat_service
+      CHAT_SERVICE_DB_PASS: chat_service
+      CHAT_SERVICE_DB_BASE: chat_service
+      CHAT_SERVICE_RABBIT_HOST: chat_service-rmq
+
+  db:
+    image: postgres:13.8-bullseye
+    hostname: chat_service-db
+    environment:
+      POSTGRES_PASSWORD: "chat_service"
+      POSTGRES_USER: "chat_service"
+      POSTGRES_DB: "chat_service"
+    volumes:
+      - chat_service-db-data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: pg_isready -U chat_service
+      interval: 2s
+      timeout: 3s
+      retries: 40
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: "chat_service-rmq"
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: "user"
+      RABBITMQ_DEFAULT_PASS: "password"
+      RABBITMQ_DEFAULT_VHOST: "/"
+    healthcheck:
+      test: rabbitmq-diagnostics check_running -q
+      interval: 3s
+      timeout: 3s
+      retries: 50
+
+volumes:
+  chat_service-db-data:
+    name: chat_service-db-data
