@@ -17,20 +17,28 @@ services:
         condition: service_healthy
     environment:
       CHAT_SERVICE_HOST: 0.0.0.0
-      CHAT_SERVICE_DB_HOST: chat_service-db
-      CHAT_SERVICE_DB_PORT: 5432
-      CHAT_SERVICE_DB_USER: chat_service
-      CHAT_SERVICE_DB_PASS: chat_service
-      CHAT_SERVICE_DB_BASE: chat_service
+      # postgres read only
+      CHAT_SERVICE_PG_RO_HOST: chat_service-db
+      CHAT_SERVICE_PG_RO_PORT: 5432
+      CHAT_SERVICE_PG_RO_USER: chat_service
+      CHAT_SERVICE_PG_RO_PASS: chat_service
+      CHAT_SERVICE_PG_RO_BASE: chat_service
+      # postgres write only
+      CHAT_SERVICE_PG_WO_HOST: chat_service-db
+      CHAT_SERVICE_PG_WO_PORT: 5432
+      CHAT_SERVICE_PG_WO_USER: chat_service
+      CHAT_SERVICE_PG_WO_PASS: chat_service
+      CHAT_SERVICE_PG_WO_BASE: chat_service
+      # rabbitmq
       CHAT_SERVICE_RABBIT_HOST: chat_service-rmq
 
   db:
     image: postgres:13.8-bullseye
     hostname: chat_service-db
     environment:
-      POSTGRES_PASSWORD: "chat_service"
-      POSTGRES_USER: "chat_service"
-      POSTGRES_DB: "chat_service"
+      POSTGRES_PASSWORD: chat_service
+      POSTGRES_USER: chat_service
+      POSTGRES_DB: chat_service
     volumes:
       - chat_service-db-data:/var/lib/postgresql/data
     restart: always
@@ -39,6 +47,9 @@ services:
       interval: 2s
       timeout: 3s
       retries: 40
+    ports:
+    - "5433:5432"
+
 
   rabbitmq:
     image: rabbitmq:3-management

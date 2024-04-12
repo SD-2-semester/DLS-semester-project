@@ -3,11 +3,21 @@ import enum
 from pathlib import Path
 from tempfile import gettempdir
 from typing import List, Optional
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import SecretStr
+from pydantic_settings import BaseSettings as PydanticBaseSettings, SettingsConfigDict
 
 from yarl import URL
 
 TEMP_DIR = Path(gettempdir())
+PREFIX = "CHAT_SERVICE_"
+
+
+class BaseSettings(PydanticBaseSettings):
+    """Base settings."""
+
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+    )
 
 
 class LogLevel(str, enum.Enum):  # noqa: WPS600
@@ -21,6 +31,56 @@ class LogLevel(str, enum.Enum):  # noqa: WPS600
     FATAL = "FATAL"
 
 
+class EnvLevel(enum.IntEnum):
+    """Possible deployment environments."""
+
+    local = enum.auto()
+    sandbox = enum.auto()
+    dev = enum.auto()
+    qa = enum.auto()
+    prod = enum.auto()
+
+
+class PGSettingsRO(BaseSettings):
+    """Configuration for database connection."""
+
+    host: str = "localhost"
+
+    port: int = 5432
+    user: str = ""
+    password: SecretStr = SecretStr("chat_service")
+    database: str = ""
+    pool_size: int = 15
+    echo: bool = False
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_prefix=f"{PREFIX}PG_RO_",
+    )
+
+    @property
+    def url(self) -> URL:
+        """Assemble database URL from settings."""
+
+        return URL.build(
+            scheme="postgresql+asyncpg",
+            host=self.host,
+            port=self.port,
+            user=self.user,
+            password=self.password.get_secret_value(),
+            path=f"/{self.database}",
+        )
+
+
+class PGSettingsWO(PGSettingsRO):
+    """Configuration for database connection."""
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_prefix=f"{PREFIX}PG_WO_",
+    )
+
+
 class Settings(BaseSettings):
     """
     Application settings.
@@ -28,6 +88,8 @@ class Settings(BaseSettings):
     These parameters can be configured
     with environment variables.
     """
+
+    env: str = "local"
 
     host: str = "127.0.0.1"
     port: int = 8000
@@ -40,13 +102,6 @@ class Settings(BaseSettings):
     environment: str = "dev"
 
     log_level: LogLevel = LogLevel.INFO
-    # Variables for the database
-    db_host: str = "localhost"
-    db_port: int = 5432
-    db_user: str = "chat_service"
-    db_pass: str = "chat_service"
-    db_base: str = "chat_service"
-    db_echo: bool = False
 
     # Variables for RabbitMQ
     rabbit_host: str = "chat_service-rmq"
@@ -58,21 +113,20 @@ class Settings(BaseSettings):
     rabbit_pool_size: int = 2
     rabbit_channel_pool_size: int = 10
 
-    @property
-    def db_url(self) -> URL:
-        """
-        Assemble database URL from settings.
+    # PostgreSQL
+    pg_ro: PGSettingsRO = PGSettingsRO()
+    pg_wo: PGSettingsWO = PGSettingsWO()
 
-        :return: database URL.
-        """
-        return URL.build(
-            scheme="postgresql+asyncpg",
-            host=self.db_host,
-            port=self.db_port,
-            user=self.db_user,
-            password=self.db_pass,
-            path=f"/{self.db_base}",
-        )
+    @property
+    def env_level(self) -> EnvLevel:
+        """Get environment level."""
+
+        # check prod first
+        for env_level in reversed(EnvLevel):
+            if env_level.name in self.env:
+                return env_level
+
+        raise ValueError(f"Unknown environment: {self.env}. ")
 
     @property
     def rabbit_url(self) -> URL:
@@ -92,7 +146,7 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_file=".env",
-        env_prefix="CHAT_SERVICE_",
+        env_prefix=PREFIX,
         env_file_encoding="utf-8",
     )
 

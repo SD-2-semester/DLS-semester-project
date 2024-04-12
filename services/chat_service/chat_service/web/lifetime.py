@@ -1,43 +1,50 @@
-import logging
 from typing import Awaitable, Callable
 
 from fastapi import FastAPI
-from chat_service.settings import settings
+from chat_service.settings import settings, EnvLevel
 from chat_service.services.rabbit.lifetime import (
     init_rabbit,
     shutdown_rabbit,
 )
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
-from sqlalchemy.orm import sessionmaker
 from chat_service.db.meta import meta
-from chat_service.db.models import load_all_models
 
 
-def _setup_db(app: FastAPI) -> None:  # pragma: no cover
-    """
-    Creates connection to the database.
+async def _setup_db_ro(app: FastAPI) -> None:  # pragma: no cover
+    """Setup read database."""
 
-    This function creates SQLAlchemy engine instance,
-    session_factory for creating sessions
-    and stores them in the application's state property.
-
-    :param app: fastAPI application.
-    """
-    engine = create_async_engine(str(settings.db_url), echo=settings.db_echo)
-    session_factory = async_sessionmaker(
-        engine,
-        expire_on_commit=False,
+    engine = create_async_engine(
+        str(settings.pg_ro.url),
+        echo=settings.pg_ro.echo,
     )
-    app.state.db_engine = engine
-    app.state.db_session_factory = session_factory
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    app.state.db_engine_ro = engine
+    app.state.db_session_ro_factory = session_factory
+
+    if settings.env_level == EnvLevel.local:
+        async with engine.begin() as connection:
+            await connection.run_sync(meta.create_all)
+            await connection.execute(text("CREATE EXTENSION IF NOT EXISTS citext"))
+
+    await engine.dispose()
 
 
-async def _create_tables() -> None:  # pragma: no cover
-    """Populates tables in the database."""
-    load_all_models()
-    engine = create_async_engine(str(settings.db_url))
-    async with engine.begin() as connection:
-        await connection.run_sync(meta.create_all)
+async def _setup_db_wo(app: FastAPI) -> None:  # pragma: no cover
+    """Setup write database."""
+    engine = create_async_engine(
+        str(settings.pg_wo.url),
+        echo=settings.pg_wo.echo,
+    )
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    app.state.db_engine_wo = engine
+    app.state.db_session_wo_factory = session_factory
+
+    if settings.env_level == EnvLevel.local:
+        async with engine.begin() as connection:
+            await connection.run_sync(meta.create_all)
+            await connection.execute(text("CREATE EXTENSION IF NOT EXISTS citext"))
+
     await engine.dispose()
 
 
@@ -57,11 +64,11 @@ def register_startup_event(
     @app.on_event("startup")
     async def _startup() -> None:  # noqa: WPS430
         app.middleware_stack = None
-        _setup_db(app)
-        await _create_tables()
+        await _setup_db_ro(app)
+        await _setup_db_wo(app)
+
         init_rabbit(app)
         app.middleware_stack = app.build_middleware_stack()
-        pass  # noqa: WPS420
 
     return _startup
 
@@ -78,9 +85,9 @@ def register_shutdown_event(
 
     @app.on_event("shutdown")
     async def _shutdown() -> None:  # noqa: WPS430
-        await app.state.db_engine.dispose()
+        await app.state.db_engine_ro.dispose()
+        await app.state.db_engine_wo.dispose()
 
         await shutdown_rabbit(app)
-        pass  # noqa: WPS420
 
     return _shutdown

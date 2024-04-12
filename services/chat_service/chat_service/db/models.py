@@ -40,7 +40,7 @@ class ServerMember(Base):
     __tablename__ = "server_member"
 
     server_id: Mapped[uuid.UUID] = mapped_column(
-        sa.UUID(as_uuid=True), sa.ForeignKey("server_id", ondelete="CASCADE")
+        sa.UUID(as_uuid=True), sa.ForeignKey("server.id", ondelete="CASCADE")
     )
     user_id: Mapped[uuid.UUID] = mapped_column(sa.UUID(as_uuid=True))
 
@@ -66,7 +66,7 @@ class ChatMessage(Base):
     __tablename__ = "chat_message"
 
     chat_id: Mapped[uuid.UUID] = mapped_column(
-        sa.UUID(as_uuid=True), sa.ForeignKey("chat_id", ondelete="CASCADE")
+        sa.UUID(as_uuid=True), sa.ForeignKey("chat.id", ondelete="CASCADE")
     )
     message: Mapped[uuid.UUID] = mapped_column(sa.String(1024))
 
@@ -83,7 +83,7 @@ class ServerMessage(Base):
     __tablename__ = "server_message"
 
     server_id: Mapped[uuid.UUID] = mapped_column(
-        sa.UUID(as_uuid=True), sa.ForeignKey("server_id", ondelete="CASCADE")
+        sa.UUID(as_uuid=True), sa.ForeignKey("server.id", ondelete="CASCADE")
     )
     message: Mapped[uuid.UUID] = mapped_column(sa.String(1024))
 
