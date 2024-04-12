@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+
 from chat_service.web.api.echo.schema import Message
 
 router = APIRouter()

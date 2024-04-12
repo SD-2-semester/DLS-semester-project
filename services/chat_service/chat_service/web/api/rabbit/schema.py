@@ -2,6 +2,7 @@ from pydantic import BaseModel
 
 
 class RMQMessageDTO(BaseModel):
+
     """DTO for publishing message in RabbitMQ."""
 
     exchange_name: str

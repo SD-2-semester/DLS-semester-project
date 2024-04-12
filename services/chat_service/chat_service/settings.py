@@ -1,11 +1,10 @@
-import os
 import enum
 from pathlib import Path
 from tempfile import gettempdir
-from typing import List, Optional
-from pydantic import SecretStr
-from pydantic_settings import BaseSettings as PydanticBaseSettings, SettingsConfigDict
 
+from pydantic import SecretStr
+from pydantic_settings import BaseSettings as PydanticBaseSettings
+from pydantic_settings import SettingsConfigDict
 from yarl import URL
 
 TEMP_DIR = Path(gettempdir())
@@ -13,6 +12,7 @@ PREFIX = "CHAT_SERVICE_"
 
 
 class BaseSettings(PydanticBaseSettings):
+
     """Base settings."""
 
     model_config = SettingsConfigDict(
@@ -20,7 +20,8 @@ class BaseSettings(PydanticBaseSettings):
     )
 
 
-class LogLevel(str, enum.Enum):  # noqa: WPS600
+class LogLevel(str, enum.Enum):
+
     """Possible log levels."""
 
     NOTSET = "NOTSET"
@@ -32,6 +33,7 @@ class LogLevel(str, enum.Enum):  # noqa: WPS600
 
 
 class EnvLevel(enum.IntEnum):
+
     """Possible deployment environments."""
 
     local = enum.auto()
@@ -41,7 +43,8 @@ class EnvLevel(enum.IntEnum):
     prod = enum.auto()
 
 
-class PGSettingsRO(BaseSettings):
+class PGSettings(BaseSettings):
+
     """Configuration for database connection."""
 
     host: str = "localhost"
@@ -55,7 +58,7 @@ class PGSettingsRO(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_file=".env",
-        env_prefix=f"{PREFIX}PG_RO_",
+        env_prefix=f"{PREFIX}PG_",
     )
 
     @property
@@ -72,16 +75,18 @@ class PGSettingsRO(BaseSettings):
         )
 
 
-class PGSettingsWO(PGSettingsRO):
+class PGSettingsRO(PGSettings):
+
     """Configuration for database connection."""
 
     model_config = SettingsConfigDict(
         env_file=".env",
-        env_prefix=f"{PREFIX}PG_WO_",
+        env_prefix=f"{PREFIX}PG_RO_",
     )
 
 
 class Settings(BaseSettings):
+
     """
     Application settings.
 
@@ -114,8 +119,8 @@ class Settings(BaseSettings):
     rabbit_channel_pool_size: int = 10
 
     # PostgreSQL
-    pg_ro: PGSettingsRO = PGSettingsRO()
-    pg_wo: PGSettingsWO = PGSettingsWO()
+    pg_ro: PGSettings = PGSettings()
+    pg: PGSettings = PGSettings()
 
     @property
     def env_level(self) -> EnvLevel:

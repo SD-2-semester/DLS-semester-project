@@ -1,8 +1,10 @@
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from chat_service.db.meta import meta
 import uuid
-import sqlalchemy as sa
 from datetime import datetime, timezone
+
+import sqlalchemy as sa
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+
+from chat_service.db.meta import meta
 
 
 class Base(DeclarativeBase):

@@ -1,21 +1,22 @@
-# kun modellen
+from typing import Generic, Type, TypeVar, get_args, get_origin, Any
 from uuid import UUID, uuid4
+
+import sqlalchemy as sa
+from fastapi import Depends
+from pydantic import BaseModel
+from sqlalchemy import orm
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from chat_service import exceptions
 from chat_service.core.pagination_dtos import OffsetResults, PaginationParams
+from chat_service.db.dependencies import get_db_session, get_db_session_ro
 from chat_service.db.models import Base
-from pydantic import BaseModel
-from chat_service.db.dependencies import get_db_session_ro
-from fastapi import Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import TypeVar, Type, Generic
-import sqlalchemy as sa
-from sqlalchemy import orm
 
 Model = TypeVar("Model", bound=Base)
 InputDTO = TypeVar("InputDTO", bound=BaseModel)
 OutputDTO = TypeVar("OutputDTO", bound=BaseModel)
 
-LoadType = orm.interfaces.LoaderOption | orm.InstrumentedAttribute
+LoadType = orm.interfaces.LoaderOption | orm.InstrumentedAttribute  # type: ignore
 PaginationType = PaginationParams
 
 
@@ -24,16 +25,35 @@ class _Base(Generic[Model]):
 
     def __init__(
         self,
-        session: AsyncSession = Depends(get_db_session_ro),
+        session: AsyncSession = Depends(get_db_session),
     ):
         self.session = session
 
+    @classmethod
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        """Set `model` attribute for each subclass of `_Base`."""
+
+        super().__init_subclass__(**kwargs)
+        for base in cls.__orig_bases__:  # type: ignore[attr-defined]
+            origin = get_origin(base)
+            if origin is None or not issubclass(origin, _Base):
+                continue
+            model = get_args(base)[0]
+            if not isinstance(model, TypeVar):
+                cls.model = model
+                return
+
 
 class BaseDAORO(
-    Generic[Model],
     _Base[Model],
 ):
     """Base class for interacting with the READ database."""
+
+    def __init__(
+        self,
+        session: AsyncSession = Depends(get_db_session_ro),
+    ):
+        self.session = session
 
     async def get_by_id_or_error(
         self,
@@ -92,9 +112,17 @@ class BaseDAORO(
         return query
 
 
-# input model
-class BaseDAOWO(_Base):
+class BaseDAOWO(
+    _Base[Model],
+    Generic[Model, InputDTO],
+):
     """Base class for interacting with the WRITE database."""
+
+    def __init__(
+        self,
+        session: AsyncSession = Depends(get_db_session),
+    ):
+        self.session = session
 
     async def create(self, input_dto: InputDTO, id: UUID | None = None) -> UUID:
         """Create a record."""
@@ -106,3 +134,16 @@ class BaseDAOWO(_Base):
         self.session.add(base)
         await self.session.flush()
         return id
+
+
+class BaseDAO(
+    BaseDAORO[Model],
+    BaseDAOWO[Model, InputDTO],
+):
+    """Base class for interacting with the database."""
+
+    def __init__(
+        self,
+        session: AsyncSession = Depends(get_db_session),
+    ):
+        self.session = session

@@ -47,7 +47,7 @@
 
 #     :yield: new engine.
 #     """
-#     from chat_service.db.meta import meta  # noqa: WPS433
+#     from chat_service.db.meta import meta
 
 #     await create_database()
 
@@ -185,7 +185,7 @@
 #     application = get_app()
 #     application.dependency_overrides[get_db_session] = lambda: dbsession
 #     application.dependency_overrides[get_rmq_channel_pool] = lambda: test_rmq_pool
-#     return application  # noqa: WPS331
+#     return application
 
 
 # @pytest.fixture

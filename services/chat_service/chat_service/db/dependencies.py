@@ -13,18 +13,18 @@ async def get_db_session_ro(request: Request) -> AsyncGenerator[AsyncSession, No
     """
     session: AsyncSession = request.app.state.db_session_ro_factory()
 
-    try:  # noqa: WPS501
+    try:
         yield session
     finally:
         await session.commit()
         await session.close()
 
 
-async def get_db_session_wo(request: Request) -> AsyncGenerator[AsyncSession, None]:
+async def get_db_session(request: Request) -> AsyncGenerator[AsyncSession, None]:
     """Create and get database session (WRITE)."""
-    session: AsyncSession = request.app.state.db_session_wo_factory()
+    session: AsyncSession = request.app.state.db_session_factory()
 
-    try:  # noqa: WPS501
+    try:
         yield session
     finally:
         await session.commit()

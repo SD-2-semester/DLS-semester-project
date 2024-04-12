@@ -23,12 +23,12 @@ services:
       CHAT_SERVICE_PG_RO_USER: chat_service
       CHAT_SERVICE_PG_RO_PASS: chat_service
       CHAT_SERVICE_PG_RO_BASE: chat_service
-      # postgres write only
-      CHAT_SERVICE_PG_WO_HOST: chat_service-db
-      CHAT_SERVICE_PG_WO_PORT: 5432
-      CHAT_SERVICE_PG_WO_USER: chat_service
-      CHAT_SERVICE_PG_WO_PASS: chat_service
-      CHAT_SERVICE_PG_WO_BASE: chat_service
+      # postgres 
+      CHAT_SERVICE_PG_HOST: chat_service-db
+      CHAT_SERVICE_PG_PORT: 5432
+      CHAT_SERVICE_PG_USER: chat_service
+      CHAT_SERVICE_PG_PASS: chat_service
+      CHAT_SERVICE_PG_BASE: chat_service
       # rabbitmq
       CHAT_SERVICE_RABBIT_HOST: chat_service-rmq
 

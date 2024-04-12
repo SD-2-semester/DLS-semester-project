@@ -1,7 +1,5 @@
-import os
-import shutil
-
 import uvicorn
+
 from chat_service.settings import settings
 
 

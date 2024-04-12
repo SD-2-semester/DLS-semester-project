@@ -1,16 +1,11 @@
-import logging
+from importlib import metadata
 
 from fastapi import FastAPI
-from fastapi.responses import UJSONResponse
-from chat_service.settings import settings
-from chat_service.web.api.router import api_router
-from importlib import metadata
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import UJSONResponse
 
-from chat_service.web.lifetime import (
-    register_shutdown_event,
-    register_startup_event,
-)
+from chat_service.web.api.router import api_router
+from chat_service.web.lifetime import register_shutdown_event, register_startup_event
 
 
 def get_app() -> FastAPI:
