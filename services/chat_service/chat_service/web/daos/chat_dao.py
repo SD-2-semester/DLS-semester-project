@@ -1,8 +1,10 @@
 from uuid import UUID
+
+import sqlalchemy as sa
+
 from chat_service.core.base_dao import BaseDAORO, BaseDAOWO
 from chat_service.db.models import Chat
 from chat_service.web.dtos.chat_dtos import ChatInputDTO
-import sqlalchemy as sa
 
 
 class ChatReadDAO(BaseDAORO[Chat]):
@@ -24,6 +26,3 @@ class ChatReadDAO(BaseDAORO[Chat]):
 
 class ChatWriteDAO(ChatReadDAO, BaseDAOWO[Chat, ChatInputDTO]):
     """Class for accessing Chat table WRITE."""
-
-
-# class ChatDAO(BaseDAO[Chat, ChatInputDTO]): ...

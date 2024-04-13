@@ -3,8 +3,10 @@ from uuid import UUID
 
 from pydantic import BaseModel, model_validator
 
+from chat_service.utils import dtos
 
-class ChatDTO(BaseModel):
+
+class ChatDTO(dtos.BaseOrmModel):
     """ChatDTO."""
 
     id: UUID
@@ -30,7 +32,7 @@ class ChatInputDTO(BaseModel):
 
     @model_validator(mode="after")
     def _ensure_ordered(self: "ChatInputDTO") -> "ChatInputDTO":
-        """Validate that the user ID's are sorted."""
+        """Make sure that the user ID's are in the correct order."""
 
         if self.user_id_1 > self.user_id_2:
             self.user_id_1, self.user_id_2 = self.user_id_2, self.user_id_1

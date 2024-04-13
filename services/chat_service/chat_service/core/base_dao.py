@@ -1,15 +1,13 @@
-from typing import Generic, Type, TypeVar, get_args, get_origin, Any
+from typing import Any, Generic, Type, TypeVar, get_args, get_origin
 from uuid import UUID, uuid4
 
 import sqlalchemy as sa
-from fastapi import Depends
 from pydantic import BaseModel
 from sqlalchemy import orm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from chat_service import exceptions
 from chat_service.core.pagination_dtos import OffsetResults, PaginationParams
-from chat_service.db.dependencies import get_db_session, get_db_session_ro
 from chat_service.db.models import Base
 
 Model = TypeVar("Model", bound=Base)
@@ -25,7 +23,7 @@ class _Base(Generic[Model]):
 
     def __init__(
         self,
-        session: AsyncSession = Depends(get_db_session),
+        session: AsyncSession,
     ):
         self.session = session
 
@@ -48,12 +46,6 @@ class BaseDAORO(
     _Base[Model],
 ):
     """Base class for interacting with the READ database."""
-
-    def __init__(
-        self,
-        session: AsyncSession = Depends(get_db_session_ro),
-    ):
-        self.session = session
 
     async def get_by_id_or_error(
         self,
@@ -118,12 +110,6 @@ class BaseDAOWO(
 ):
     """Base class for interacting with the WRITE database."""
 
-    def __init__(
-        self,
-        session: AsyncSession = Depends(get_db_session),
-    ):
-        self.session = session
-
     async def create(self, input_dto: InputDTO, id: UUID | None = None) -> UUID:
         """Create a record."""
 
@@ -141,9 +127,3 @@ class BaseDAO(
     BaseDAOWO[Model, InputDTO],
 ):
     """Base class for interacting with the database."""
-
-    def __init__(
-        self,
-        session: AsyncSession = Depends(get_db_session),
-    ):
-        self.session = session

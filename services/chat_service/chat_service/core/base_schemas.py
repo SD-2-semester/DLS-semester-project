@@ -1,6 +1,12 @@
 import uuid
 
-from pydantic import Field, BaseModel
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class BaseOrmModel(BaseModel):
+    """BaseOrmModel."""
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CreatedResponse(BaseModel):
