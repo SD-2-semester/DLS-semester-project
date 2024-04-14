@@ -1,13 +1,13 @@
 from chat_service.core.base_dao import BaseDAORO, BaseDAOWO
-from chat_service.db.models import ServerMessage
-from chat_service.web.dtos.server_message_dtos import ServerMessageInputDTO
+from chat_service.db.models import ServerMember
+from chat_service.web.dtos.server_member_dtos import ServerMemberInputDTO
 
 
-class ServerMessageReadDAO(BaseDAORO[ServerMessage]):
-    """Class for accessing ServerMessage table READ."""
+class ServerMemberReadDAO(BaseDAORO[ServerMember]):
+    """Class for accessing ServerMember table READ."""
 
 
-class ServerMessageWriteDAO(
-    ServerMessageReadDAO, BaseDAOWO[ServerMessage, ServerMessageInputDTO]
+class ServerMemberWriteDAO(
+    ServerMemberReadDAO, BaseDAOWO[ServerMember, ServerMemberInputDTO]
 ):
-    """Class for accessing ServerMessage table WRITE."""
+    """Class for accessing ServerMember table WRITE."""

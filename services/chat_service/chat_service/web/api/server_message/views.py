@@ -1,5 +1,3 @@
-from uuid import UUID
-
 import sqlalchemy as sa
 from fastapi import APIRouter
 
@@ -7,14 +5,14 @@ from chat_service.core.pagination_dtos import Pagination
 from chat_service.db import models
 from chat_service.utils import dtos
 from chat_service.utils.daos import ReadDAOs, WriteDAOs
-from chat_service.web.api.server.dependencies import GetServer
+from chat_service.web.api.server.dependencies import GetServerIfMember
 
 router = APIRouter()
 
 
-@router.post("/{server_id}", status_code=201)
+@router.post("/server/{server_id}/user/{user_id}", status_code=201)
 async def create_server_message(
-    server: GetServer,
+    server: GetServerIfMember,
     request_dto: dtos.ServerMessageRequestDTO,
     w_daos: WriteDAOs,
 ) -> dtos.DefaultCreatedResponse:
@@ -26,21 +24,23 @@ async def create_server_message(
         ),
     )
 
+    # TODO: websocket, notification
+
     return dtos.DefaultCreatedResponse(
         data=dtos.CreatedResponse(id=obj_id),
     )
 
 
-@router.get("/{server_id}")
+@router.get("/server/{server_id}")
 async def get_messages_by_server(
-    server_id: UUID,
+    server: GetServerIfMember,
     r_daos: ReadDAOs,
     pagination: Pagination,
 ) -> dtos.OffsetResults[dtos.ServerMessageDTO]:
     """Get messages by given server."""
 
     query = sa.select(models.ServerMessage).where(
-        models.ServerMessage.server_id == server_id,
+        models.ServerMessage.server_id == server.id,
     )
 
     return await r_daos.server_message.get_offset_results(

@@ -11,12 +11,23 @@ from chat_service.utils.daos import ReadDAOs
 async def get_server(server_id: UUID, r_daos: ReadDAOs) -> Server:
     """Get server by id."""
 
-    server = await r_daos.server.filter_one(id=server_id)
+    return await r_daos.server.get_by_id_or_error(id=server_id)
 
-    if server is None:
-        raise exceptions.Http404(f"Server with id '{server_id}' not found.")
+
+GetServer = Annotated[Server, Depends(get_server)]
+
+
+async def get_server_if_member(
+    server: GetServer, user_id: UUID, r_daos: ReadDAOs
+) -> Server:
+    """Get server if member."""
+
+    existing_member = await r_daos.server_member.filter_one(user_id=user_id)
+
+    if existing_member is None:
+        raise exceptions.Http404("User is not a member of this server.")
 
     return server
 
 
-GetServer = Annotated[Server, Depends(get_server)]
+GetServerIfMember = Annotated[Server, Depends(get_server_if_member)]

@@ -34,16 +34,21 @@ async def create_server(
     )
 
 
-@router.get("/{user_id}")
-async def get_servers_by_user(
+@router.get("/user/{user_id}")
+async def get_servers_where_is_member(
     user_id: UUID,
     r_daos: ReadDAOs,
     pagination: Pagination,
 ) -> dtos.OffsetResults[dtos.ServerDTO]:
-    """Get servers owned by given user."""
+    """Get servers that a given user is a member of."""
 
-    query = sa.select(models.Server).where(
-        models.Server.owner_id == user_id,
+    query = (
+        sa.select(models.Server)
+        .join(
+            models.ServerMember,
+            models.Server.id == models.ServerMember.server_id,
+        )
+        .where(models.ServerMember.user_id == user_id)
     )
 
     return await r_daos.server.get_offset_results(

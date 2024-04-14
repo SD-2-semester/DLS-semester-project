@@ -1,6 +1,15 @@
 from fastapi.routing import APIRouter
 
-from chat_service.web.api import chat, echo, monitoring, rabbit, server, server_message
+from chat_service.web.api import (
+    chat,
+    chat_message,
+    echo,
+    monitoring,
+    rabbit,
+    server,
+    server_member,
+    server_message,
+)
 
 api_router = APIRouter()
 api_router.include_router(monitoring.router)
@@ -10,4 +19,10 @@ api_router.include_router(chat.router, prefix="/chats", tags=["chats"])
 api_router.include_router(server.router, prefix="/servers", tags=["servers"])
 api_router.include_router(
     server_message.router, prefix="/server-messages", tags=["server-messages"]
+)
+api_router.include_router(
+    server_member.router, prefix="/server-members", tags=["server-members"]
+)
+api_router.include_router(
+    chat_message.router, prefix="/chat-messages", tags=["chat-messages"]
 )

@@ -10,15 +10,17 @@ from chat_service.web.dtos.chat_dtos import ChatInputDTO
 class ChatReadDAO(BaseDAORO[Chat]):
     """Class for accessing Chat table READ."""
 
-    async def get_chat(self, user_id_1: UUID, user_id_2: UUID) -> Chat | None:
-        """Get chat by users."""
+    async def get_chat_if_participant(self, user_id: UUID) -> Chat | None:
+        """Get chat if participant."""
 
         query = sa.select(self.model).where(
-            sa.and_(
-                self.model.user_id_1 == user_id_1,
-                self.model.user_id_2 == user_id_2,
+            sa.or_(
+                self.model.user_id_1 == user_id,
+                self.model.user_id_2 == user_id,
             )
         )
+
+        query = query.limit(1)
 
         result = await self.session.execute(query)
         return result.scalar_one_or_none()

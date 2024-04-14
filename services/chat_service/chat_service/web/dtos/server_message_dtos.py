@@ -23,6 +23,6 @@ class ServerMessageInputDTO(BaseModel):
 
 
 class ServerMessageRequestDTO(BaseModel):
-    """ServerRequestDTO."""
+    """ServerMessageRequestDTO."""
 
     message: str

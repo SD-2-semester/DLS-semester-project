@@ -1,7 +1,11 @@
+from uuid import UUID
+
+import sqlalchemy as sa
 from fastapi import APIRouter
 
 from chat_service import exceptions
 from chat_service.core.pagination_dtos import Pagination
+from chat_service.db.models import Chat
 from chat_service.utils import dtos
 from chat_service.utils.daos import ReadDAOs, WriteDAOs
 
@@ -16,7 +20,7 @@ async def create_chat(
 ) -> dtos.DefaultCreatedResponse:
     """Create a chat between two users."""
 
-    existing_chat = await r_daos.chat.get_chat(
+    existing_chat = await r_daos.chat.filter_one(
         user_id_1=input_dto.user_id_1,
         user_id_2=input_dto.user_id_2,
     )
@@ -28,6 +32,28 @@ async def create_chat(
 
     return dtos.DefaultCreatedResponse(
         data=dtos.CreatedResponse(id=obj_id),
+    )
+
+
+@router.get("/user/{user_id}")
+async def get_chats_where_is_participant(
+    user_id: UUID,
+    r_daos: ReadDAOs,
+    pagination: Pagination,
+) -> dtos.OffsetResults[dtos.ChatDTO]:
+    """Get all chats where user is a participant."""
+
+    query = sa.select(Chat).where(
+        sa.or_(
+            Chat.user_id_1 == user_id,
+            Chat.user_id_2 == user_id,
+        )
+    )
+
+    return await r_daos.chat.get_offset_results(
+        pagination=pagination,
+        out_dto=dtos.ChatDTO,
+        query=query,
     )
 
 
