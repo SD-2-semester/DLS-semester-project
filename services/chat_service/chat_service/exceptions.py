@@ -3,7 +3,7 @@ from starlette import status
 
 
 class Http403(HTTPException):
-    """Not found 404."""
+    """Forbidden 403."""
 
     def __init__(self, detail: str = "Forbidden."):
         self.status_code = status.HTTP_403_FORBIDDEN

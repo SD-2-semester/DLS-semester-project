@@ -23,9 +23,7 @@ async def get_chat_if_participant(
 ) -> Chat:
     """Get chat if user is a participant."""
 
-    existing_chat = await r_daos.chat.get_chat_if_participant(
-        user_id,
-    )
+    existing_chat = await r_daos.chat.get_chat_if_participant(chat.id, user_id)
 
     if existing_chat is None:
         raise exceptions.Http404("User is not a participant of this chat.")
