@@ -28,10 +28,9 @@ class _Base(Generic[Model]):
         self.session = session
 
     @classmethod
-    def __init_subclass__(cls, **kwargs: Any) -> None:
+    def __init_subclass__(cls) -> None:
         """Set `model` attribute for each subclass of `_Base`."""
-
-        super().__init_subclass__(**kwargs)
+        super().__init_subclass__()
         for base in cls.__orig_bases__:  # type: ignore[attr-defined]
             origin = get_origin(base)
             if origin is None or not issubclass(origin, _Base):
@@ -69,6 +68,31 @@ class BaseDAORO(
             raise exception
 
         return obj
+
+    async def filter_one(
+        self,
+        loads: list[LoadType] | None = None,
+        **filter_params: Any,
+    ) -> Model | None:
+        """Get a record by filters."""
+
+        query = sa.select(self.model)
+
+        for key, value in filter_params.items():
+            if not hasattr(self.model, key):
+                raise ValueError(
+                    f"Model '{self.model.__name__}' does not have attr: '{key}'"
+                )
+
+            query = query.where(getattr(self.model, key) == value)
+
+        query = query.limit(1)
+
+        if loads:
+            query = self._eager_load(query, loads)
+
+        results = await self.session.execute(query)
+        return results.scalar_one_or_none()
 
     async def get_offset_results(
         self,
@@ -120,10 +144,3 @@ class BaseDAOWO(
         self.session.add(base)
         await self.session.flush()
         return id
-
-
-class BaseDAO(
-    BaseDAORO[Model],
-    BaseDAOWO[Model, InputDTO],
-):
-    """Base class for interacting with the database."""

@@ -30,7 +30,7 @@ class Server(Base):
 
     __tablename__ = "server"
 
-    title: Mapped[str] = mapped_column(sa.String(255))
+    title: Mapped[str] = mapped_column(sa.String(255), unique=True)
     owner_id: Mapped[uuid.UUID] = mapped_column(
         sa.UUID(as_uuid=True),
     )
