@@ -24,6 +24,18 @@ services:
       - ./services/relation_service:/relation_service
     # command: cargo watch -x run
 
+  #notification_service
+  notification_service:
+    build:
+      context: ./services/notification_service
+    command:
+      ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8081", "--reload"]
+    restart: always
+    ports:
+      - "8081:8081"
+    depends_on:
+      - rabbitmq
+
   # neo4j
   neo4j:
     image: neo4j:latest

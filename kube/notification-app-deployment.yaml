@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-app-deploy
+  labels:
+    name: notification-app-deploy
+    app: g-chat-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: notification-app-pod
+      micro-service: notification-service
+      app: g-chat-app
+  template:
+    metadata:
+      name: notification-app-pod
+      labels:
+        name: notification-app-pod
+        micro-service: notification-service
+        app: g-chat-app
+    spec:
+      containers:
+        - name: notification-app
+          image: moshizzl3/notification-service-local:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+          env:     
+            - name: AMQP_USER
+              value: user
+            - name: AMQP_PASSWORD
+              value: password
+            - name: AMQP_HOST
+              value: message-broker # service name
+            - name: AMQP_PORT
+              value: "5672"

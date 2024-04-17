@@ -6,13 +6,13 @@ from api.routes.notifications.ws_connection_manager import ws_manager
 
 async def get_rabbitmq_connection() -> RobustConnection:
     """Get a connection to the message broker."""
-    return await connect("amqp://user:password@localhost/")
+    return await connect("amqp://user:password@message-broker/")
 
 
 async def rabbitmq_consumer():
     connection = await get_rabbitmq_connection()
     channel = await connection.channel()
-    connection = await connect("amqp://user:password@localhost/")
+    connection = await connect("amqp://user:password@message-broker/")
     channel = await connection.channel()
 
     queue = await channel.declare_queue("new_relation_queue", durable=True)
