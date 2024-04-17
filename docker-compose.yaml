@@ -40,6 +40,8 @@ services:
       NOTIFICATION_SERVICE_RABBIT_PORT: 5672
       NOTIFICATION_SERVICE_RABBIT_USER: user
       NOTIFICATION_SERVICE_RABBIT_PASS: password
+      NOTIFICATION_SERVICE_REDIS_HOST: redis
+      NOTIFICATION_SERVICE_REDIS_PORT: 6379
     volumes:
       - ./services/notification_service:/usr/src/app
   # neo4j
@@ -116,6 +118,14 @@ services:
       timeout: 3s
       retries: 40
 
+  # Redis
+  redis:
+    image: redis:latest
+    ports:
+      - 6379:6379
+    volumes:
+      - redis_data:/data
+
   # Misc
   rabbitmq:
     image: "rabbitmq:3-management"
@@ -135,3 +145,4 @@ volumes:
   neo4j-plugins:
   rabbitmq_data:
   auth-db-data:
+  redis_data:

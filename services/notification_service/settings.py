@@ -12,7 +12,6 @@ PREFIX = "NOTIFICATION_SERVICE_"
 
 
 class BaseSettings(PydanticBaseSettings):
-
     """Base settings."""
 
     model_config = SettingsConfigDict(
@@ -21,7 +20,6 @@ class BaseSettings(PydanticBaseSettings):
 
 
 class LogLevel(str, enum.Enum):
-
     """Possible log levels."""
 
     NOTSET = "NOTSET"
@@ -33,7 +31,6 @@ class LogLevel(str, enum.Enum):
 
 
 class EnvLevel(enum.IntEnum):
-
     """Possible deployment environments."""
 
     local = enum.auto()
@@ -43,40 +40,28 @@ class EnvLevel(enum.IntEnum):
     prod = enum.auto()
 
 
-# Change to redis
-# class PGSettings(BaseSettings):
+class RedisSettings(BaseSettings):
+    """Configuration for Redis connection."""
 
-#     """Configuration for database connection."""
+    host: str = "redis"
+    port: int = 6379
+    password: SecretStr = SecretStr("")
+    db: int = 0  # Default Redis database index
+    pool_size: int = 10  # Pool size for Redis connections
+    echo: bool = False  # print the commands sent
 
-#     host: str = "localhost"
+    class Config:
+        env_file = ".env"
+        env_prefix = f"{PREFIX}REDIS_"
 
-#     port: int = 5432
-#     user: str = ""
-#     password: SecretStr = SecretStr("chat_service")
-#     database: str = ""
-#     pool_size: int = 15
-#     echo: bool = False
+    @property
+    def url(self) -> str:
+        """Assemble Redis URL from settings."""
+        password = self.password.get_secret_value()
+        return f"redis://:{password}@{self.host}:{self.port}/{self.db}"
 
-#     model_config = SettingsConfigDict(
-#         env_file=".env",
-#         env_prefix=f"{PREFIX}PG_",
-#     )
-
-#     @property
-#     def url(self) -> URL:
-#         """Assemble database URL from settings."""
-
-#         return URL.build(
-#             scheme="postgresql+asyncpg",
-#             host=self.host,
-#             port=self.port,
-#             user=self.user,
-#             password=self.password.get_secret_value(),
-#             path=f"/{self.database}",
-#         )
 
 class Settings(BaseSettings):
-
     """
     Application settings.
     These parameters can be configured
@@ -106,6 +91,9 @@ class Settings(BaseSettings):
 
     rabbit_pool_size: int = 2
     rabbit_channel_pool_size: int = 10
+
+    # Redis
+    redis: RedisSettings = RedisSettings()
 
     @property
     def env_level(self) -> EnvLevel:

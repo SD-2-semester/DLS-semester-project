@@ -14,11 +14,15 @@ spec:
       ports:
         - containerPort: 8081
       env:     
-        - name: AMQP_USER
+        - name: NOTIFICATION_SERVICE_RABBIT_USER
           value: user
-        - name: AMQP_PASSWORD
+        - name: NOTIFICATION_SERVICE_RABBIT_PASS
           value: password
-        - name: AMQP_HOST
+        - name: NOTIFICATION_SERVICE_RABBIT_HOST
           value: message-broker # service name
-        - name: AMQP_PORT
+        - name: NOTIFICATION_SERVICE_RABBIT_PORT
           value: "5672"
+        - name: NOTIFICATION_SERVICE_REDIS_HOST
+          value:  redis-db # service name
+        - name: NOTIFICATION_SERVICE_REDIS_PORT
+          value: "6379"

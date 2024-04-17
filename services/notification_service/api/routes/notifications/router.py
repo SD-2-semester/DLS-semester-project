@@ -20,4 +20,4 @@ async def sub_notifications(websocket: WebSocket, user_id: str) -> None:
             # Send message only to client with user id
             await ws_manager.broadcast(data, user_id)
     except Exception:
-        ws_manager.disconnect(websocket, user_id)
+        await ws_manager.disconnect(websocket, user_id)
