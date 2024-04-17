@@ -41,7 +41,7 @@ services:
       NOTIFICATION_SERVICE_RABBIT_USER: user
       NOTIFICATION_SERVICE_RABBIT_PASS: password
     volumes:
-      - ./services/notification_service:/notification_service
+      - ./services/notification_service:/usr/src/app
   # neo4j
   neo4j:
     image: neo4j:latest
