@@ -2,6 +2,7 @@ import asyncio
 import redis.asyncio as aioredis
 import json
 from fastapi import WebSocket
+from settings import settings
 
 
 class RedisPubSubManager:
@@ -14,8 +15,8 @@ class RedisPubSubManager:
     """
 
     def __init__(self, host="localhost", port=6379):
-        self.redis_host = host
-        self.redis_port = port
+        self.redis_host = settings.redis.host
+        self.redis_port = settings.redis.port
         self.pubsub = None
 
     async def _get_redis_connection(self) -> aioredis.Redis:
