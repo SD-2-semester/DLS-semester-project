@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 import uvicorn
 from api.routes.router import router as api_router
-from rabbitmq.connection import rabbitmq_consumer
+from rabbitmq.connection import setup_rabbitmq_consumers
 import asyncio
 
 app = FastAPI()
@@ -12,7 +12,7 @@ app.include_router(api_router, prefix="/api")
 @app.on_event("startup")
 async def startup_event():
     await asyncio.create_task(
-        rabbitmq_consumer()
+        setup_rabbitmq_consumers()
     )  # Run rabbitmq_consumer as a background task
 
 

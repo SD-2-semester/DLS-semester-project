@@ -7,14 +7,10 @@ from settings import settings
 
 class RedisPubSubManager:
     """
-        Initializes the RedisPubSubManager.
-
-    Args:
-        host (str): Redis server host.
-        port (int): Redis server port.
+    Initializes the RedisPubSubManager.
     """
 
-    def __init__(self, host="localhost", port=6379):
+    def __init__(self):
         self.redis_host = settings.redis.host
         self.redis_port = settings.redis.port
         self.pubsub = None
@@ -22,9 +18,6 @@ class RedisPubSubManager:
     async def _get_redis_connection(self) -> aioredis.Redis:
         """
         Establishes a connection to Redis.
-
-        Returns:
-            aioredis.Redis: Redis connection object.
         """
         return aioredis.Redis(
             host=self.redis_host, port=self.redis_port, auto_close_connection_pool=False
@@ -34,37 +27,28 @@ class RedisPubSubManager:
         """
         Connects to the Redis server and initializes the pubsub client.
         """
+
         self.redis_connection = await self._get_redis_connection()
         self.pubsub = self.redis_connection.pubsub()
 
-    async def _publish(self, room_id: str, message: str) -> None:
+    async def publish(self, user_id: str, message: str) -> None:
         """
         Publishes a message to a specific Redis channel.
-
-        Args:
-            room_id (str): Channel or room ID.
-            message (str): Message to be published.
         """
-        await self.redis_connection.publish(room_id, message)
 
-    async def subscribe(self, room_id: str) -> aioredis.Redis:
+        await self.redis_connection.publish(user_id, message)
+
+    async def subscribe(self, user_id: str) -> aioredis.Redis:
         """
         Subscribes to a Redis channel.
-
-        Args:
-            room_id (str): Channel or room ID to subscribe to.
-
-        Returns:
-            aioredis.ChannelSubscribe: PubSub object for the subscribed channel.
         """
-        await self.pubsub.subscribe(room_id)
+
+        await self.pubsub.subscribe(user_id)
         return self.pubsub
 
-    async def unsubscribe(self, room_id: str) -> None:
+    async def unsubscribe(self, user_id: str) -> None:
         """
         Unsubscribes from a Redis channel.
-
-        Args:
-            room_id (str): Channel or room ID to unsubscribe from.
         """
-        await self.pubsub.unsubscribe(room_id)
+
+        await self.pubsub.unsubscribe(user_id)

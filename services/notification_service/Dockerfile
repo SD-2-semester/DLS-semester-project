@@ -4,18 +4,20 @@ RUN apt-get update && apt-get install -y \
   gcc \
   && rm -rf /var/lib/apt/lists/*
 
-# Set the working directory in the container
+# Set the working directory
 WORKDIR /usr/src/app
 
-# Copy the Poetry configuration files
+
 COPY poetry.lock pyproject.toml ./
-# Install Poetry
+
 RUN pip install poetry
 
-# Configure Poetry: Do not create a virtual environment and do not ask any interactive question
+# Configure Poetry: Do not create a virtual env
 RUN poetry config virtualenvs.create false 
+
 # Install dependencies using Poetry
 RUN poetry install --only main
+
 # Removing gcc
 RUN apt-get purge -y \
   gcc \
