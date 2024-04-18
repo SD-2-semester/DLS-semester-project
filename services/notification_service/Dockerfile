@@ -1,4 +1,4 @@
-FROM python:3.11.0-slim-bullseye AS prod
+FROM python:3.11.0-slim-bullseye AS builder
 
 RUN apt-get update && apt-get install -y \
   gcc \
@@ -23,6 +23,10 @@ RUN apt-get purge -y \
 
 COPY . .
 
+FROM builder as dev
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8081","--reload" ]
+
+FROM builder as prod
 # Command to run the application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8081"]
 

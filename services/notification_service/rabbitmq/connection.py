@@ -14,8 +14,6 @@ async def get_rabbitmq_connection() -> RobustConnection:
 async def rabbitmq_consumer():
     connection = await get_rabbitmq_connection()
     channel = await connection.channel()
-    connection = await connect(str(settings.rabbit_url))
-    channel = await connection.channel()
 
     queue = await channel.declare_queue("new_relation_queue", durable=True)
 

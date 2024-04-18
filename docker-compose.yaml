@@ -28,8 +28,7 @@ services:
   notification_service:
     build:
       context: ./services/notification_service
-    command:
-      ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8081", "--reload"]
+      target: dev
     restart: always
     ports:
       - "8081:8081"
