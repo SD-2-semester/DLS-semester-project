@@ -1,65 +1,61 @@
-from fastapi import APIRouter, WebSocket
+from fastapi import WebSocket, APIRouter
 from api.routes.notifications.ws_connection_manager import ws_manager
-import asyncio
+from fastapi import WebSocket, WebSocketDisconnect
+import json
 
 router = APIRouter()
 
 
-@router.get("/hello")
-async def hello():
-    return "hello"
-
-
 @router.websocket("/notification/{user_id}")
-async def sub_notifications(websocket: WebSocket, user_id: str) -> None:
-    """User subscribes to notifications."""
-
-    await ws_manager.connect(websocket, user_id)
-    print("Connected: User ID", user_id)
-
-    try:
-        # task to handle incoming WebSocket messages
-        consumer_task = asyncio.create_task(
-            consume_websocket_messages(websocket, user_id)
-        )
-
-        # task to handle messages from Redis Pub/Sub
-        producer_task = asyncio.create_task(produce_to_websocket(user_id))
-
-        # Wait for either task to finish - if one fails or finishes, the other should be cancelled
-        done, pending = await asyncio.wait(
-            [consumer_task, producer_task],
-            return_when=asyncio.FIRST_COMPLETED,
-        )
-
-        # If either task is done, cancel the other and handle any exceptions
-        for task in pending:
-            task.cancel()
-        for task in done:
-            if task.exception():
-                raise task.exception()
-
-    except Exception as e:
-        print(f"Error: {e}")
-    finally:
-        await ws_manager.disconnect(websocket, user_id)
-        print("Disconnected: User ID", user_id)
-
-
-async def consume_websocket_messages(websocket: WebSocket, user_id: str):
-    """Consume messages from the WebSocket connection and publish to Redis."""
+async def websocket_endpoint(websocket: WebSocket, user_id: str):
+    await ws_manager.connect_user(user_id, websocket)  # Connect the user
+    message = {
+        "user_id": user_id,
+        "message": f"User {user_id} connected.",
+    }
+    await ws_manager.send_notification(
+        user_id, json.dumps(message)
+    )  # Send connection notification
     try:
         while True:
-            data = await websocket.receive_text()
-            print("Received from client:", data)
-            await ws_manager.broadcast(data, user_id)
-    except Exception as e:
-        print(f"Error in consumer: {e}")
+            data = await websocket.receive_text()  # Receive message from the user
+            message = {"user_id": user_id, "message": data}
+            await ws_manager.send_notification(
+                user_id, json.dumps(message)
+            )  # Broadcast user message
+
+    except WebSocketDisconnect:
+        await ws_manager.disconnect_user(user_id, websocket)  # Disconnect the user
+        message = {
+            "user_id": user_id,
+            "message": f"User {user_id} disconnected.",
+        }
+        await ws_manager.send_notification(
+            user_id, json.dumps(message)
+        )  # Notify about user disconnection
 
 
-async def produce_to_websocket(user_id: str):
-    """Listen to messages from Redis and send to WebSocket connections."""
-    try:
-        await ws_manager.broadcast_local(user_id)
-    except Exception as e:
-        print(f"Error in producer: {e}")
+# @router.websocket("/notification/{room_id}/{user_id}")
+# async def websocket_endpoint(websocket: WebSocket, room_id: str, user_id: int):
+#     await ws_manager.add_user_to_room(room_id, websocket)
+#     message = {
+#         "user_id": user_id,
+#         "room_id": room_id,
+#         "message": f"User {user_id} connected to room - {room_id}",
+#     }
+#     await ws_manager.broadcast_to_room(room_id, json.dumps(message))
+#     try:
+#         while True:
+#             data = await websocket.receive_text()
+#             message = {"user_id": user_id, "room_id": room_id, "message": data}
+#             await ws_manager.broadcast_to_room(room_id, json.dumps(message))
+
+#     except WebSocketDisconnect:
+#         await ws_manager.remove_user_from_room(room_id, websocket)
+
+#         message = {
+#             "user_id": user_id,
+#             "room_id": room_id,
+#             "message": f"User {user_id} disconnected from room - {room_id}",
+#         }
+#         await ws_manager.broadcast_to_room(room_id, json.dumps(message))

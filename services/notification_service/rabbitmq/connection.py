@@ -24,15 +24,12 @@ async def rabbitmq_consumer():
             user_id_1 = body.get("user_id_1")
             user_id_2 = body.get("user_id_2")
 
-            print(ws_manager.local_connections)
-            # Broadcasting to user_id_1 and user_id_2
-            if user_id_1 in ws_manager.local_connections:
-                await ws_manager.broadcast(
-                    f"Notification for user: {user_id_1}", user_id_1
-                )
-            if user_id_2 in ws_manager.local_connections:
-                await ws_manager.broadcast(
-                    f"Notification for user: {user_id_2}", user_id_2
-                )
+            await ws_manager.send_notification(
+                message=f"Notification for user: {user_id_1}", user_id=user_id_1
+            )
+
+            await ws_manager.send_notification(
+                message=f"Notification for user: {user_id_2}", user_id=user_id_2
+            )
 
     await queue.consume(on_message)

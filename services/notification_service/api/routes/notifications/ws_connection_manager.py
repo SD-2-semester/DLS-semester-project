@@ -1,88 +1,83 @@
-import uuid
-from redis import asyncio as aioredis
+from db.redis import RedisPubSubManager
+import asyncio
+import redis.asyncio as aioredis
+import json
 from fastapi import WebSocket
-from settings import settings
 
 
-class NotificationConnectionManager:
-    """
-    Connection manager for notifications using Redis with Pub/Sub
-    and local storage, for web sockets.
-    """
+class WebSocketManager:
 
-    def __init__(self, redis_url: str) -> None:
-
-        # Set up the Redis connection pool
-        self.pool = aioredis.ConnectionPool.from_url(
-            redis_url, max_connections=settings.redis.pool_size, decode_responses=True
-        )
-        self.redis = aioredis.Redis(connection_pool=self.pool)
-
-        # set up pub/sub
-        self.pubsub = self.redis.pubsub()
-
-        # stores WebSocket instances by user_id and connection_id
-        # so we can check is user is connected in the current pod
-        self.local_connections: dict = {}
-
-    async def connect(self, websocket: WebSocket, user_id: str) -> None:
+    def __init__(self):
         """
-        Creates a websocket connection in the redis db, and locally.
-        And then subscribes to the redis channel.
-        """
+        Initializes the WebSocketManager.
 
+        Attributes:
+            connections (dict): A dictionary to store WebSocket connections by user IDs.
+            pubsub_client (RedisPubSubManager): An instance of the RedisPubSubManager class for pub-sub functionality.
+        """
+        self.connections: dict = {}
+        self.pubsub_client = RedisPubSubManager()
+
+    async def connect_user(self, user_id: str, websocket: WebSocket) -> None:
+        """
+        Connects a user's WebSocket and subscribes them to their notification channel.
+
+        Args:
+            user_id (str): User ID or channel name.
+            websocket (WebSocket): WebSocket connection object.
+        """
         await websocket.accept()
 
-        # Generate a unique ID for the connection
-        connection_id = str(uuid.uuid4())
+        if user_id not in self.connections:
+            self.connections[user_id] = []
 
-        if user_id not in self.local_connections:
-            self.local_connections[user_id] = {}
+        self.connections[user_id].append(websocket)
 
-        self.local_connections[user_id][connection_id] = websocket
+        # Connect to Redis and subscribe to the user's channel
+        await self.pubsub_client.connect()
+        pubsub_subscriber = await self.pubsub_client.subscribe(user_id)
+        asyncio.create_task(self._pubsub_data_reader(pubsub_subscriber, user_id))
 
-        await self.redis.sadd(f"connections:{user_id}", connection_id)  # type: ignore
-
-        # Subscribe to the user's channel
-        await self.pubsub.subscribe(user_id)
-
-    async def disconnect(self, websocket: WebSocket, user_id: str) -> None:
+    async def send_notification(self, user_id: str, message: str) -> None:
         """
-        Disconnects the user, and deletes him from Redis,
-        user is also unsubscribed from channel.
+        Sends a notification message to a specific user's channel.
+
+        Args:
+            user_id (str): User ID.
+            message (str): Notification message to be sent.
         """
+        await self.pubsub_client._publish(user_id, message)
 
-        for conn_id, ws in self.local_connections.get(user_id, {}).items():
-            if ws == websocket:
-                await self.redis.srem(f"connections:{user_id}", conn_id)  # type: ignore
-                del self.local_connections[user_id][conn_id]
-                break
-        if not self.local_connections[user_id]:
-            await self.pubsub.unsubscribe(user_id)
-            del self.local_connections[user_id]
-
-    async def broadcast(self, message: str, user_id: str) -> None:
+    async def disconnect_user(self, user_id: str, websocket: WebSocket) -> None:
         """
-        Broadcast messages to all active WebSocket connections
-        for a specific user using Pub/Sub.
+        Disconnects a user's WebSocket connection and unsubscribes them if it's the last connection.
+
+        Args:
+            user_id (str): User ID or channel name.
+            websocket (WebSocket): WebSocket connection object.
         """
+        self.connections[user_id].remove(websocket)
 
-        await self.redis.publish(user_id, message)
+        if len(self.connections[user_id]) == 0:
+            del self.connections[user_id]
+            await self.pubsub_client.unsubscribe(user_id)
 
-    async def broadcast_local(self, user_id: str) -> None:
+    async def _pubsub_data_reader(self, pubsub_subscriber, user_id):
         """
-        Handle received messages from Pub/Sub and send
-        to local WebSocket connections.
+        Reads messages from Redis PubSub and sends them to the user's WebSocket connections.
+
+        Args:
+            pubsub_subscriber (aioredis.ChannelSubscribe): PubSub object for the subscribed channel.
+            user_id (str): User ID or channel name.
         """
+        while True:
+            message = await pubsub_subscriber.get_message(
+                ignore_subscribe_messages=True
+            )
+            if message is not None:
+                data = message["data"].decode("utf-8")
+                for websocket in self.connections[user_id]:
+                    await websocket.send_text(data)
 
-        async for message in self.pubsub.listen():
-            if message["type"] == "message" and message["channel"] == user_id:
-                if user_id in self.local_connections:
-                    for conn_id in self.local_connections[user_id]:
-                        websocket = self.local_connections[user_id][conn_id]
-                        if websocket:
-                            await websocket.send_text(message["data"])
 
-
-# Initialize the WebSocket manager with the Redis URL
-ws_manager = NotificationConnectionManager(redis_url=settings.redis.url)
+ws_manager = WebSocketManager()
