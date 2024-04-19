@@ -19,7 +19,6 @@ class QueueType(Enum):
         queue_names = {
             QueueType.NEW_RELATION: "new_relation_queue",
             QueueType.NEW_CHAT: "new_chat_queue",
-            
         }
         return queue_names.get(queue_type)
 

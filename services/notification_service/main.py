@@ -11,9 +11,12 @@ app.include_router(api_router, prefix="/api")
 
 @app.on_event("startup")
 async def startup_event():
+    """Start the app, and run the rabbitmq as a background task."""
+
+    # Run rabbitmq_consumer as a background task
     await asyncio.create_task(
         setup_rabbitmq_consumers()
-    )  # Run rabbitmq_consumer as a background task
+    )  
 
 
 if __name__ == "__main__":

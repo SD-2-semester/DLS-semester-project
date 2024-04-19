@@ -8,16 +8,17 @@ router = APIRouter()
 
 @router.websocket("/notification/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: str) -> None:
-    """Connect user by user_id."""
+    """Connect user by user_id and create a websocket session."""
 
     # Connect the user
     await ws_manager.connect_user(user_id, websocket)
 
     try:
         while True:
-            # Receive message from the user
+            # Receive messages
             data = await websocket.receive_text()
 
+            # could be a dto
             message = {"user_id": user_id, "message": data}
 
             # Broadcast user message
