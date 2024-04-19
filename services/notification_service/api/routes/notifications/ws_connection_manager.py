@@ -1,12 +1,10 @@
-from db.redis import RedisPubSubManager
 import asyncio
-import redis.asyncio as aioredis
-import json
+
+from db.redis import RedisPubSubManager
 from fastapi import WebSocket
 
 
 class WebSocketManager:
-
     def __init__(self):
         """
         Initializes the WebSocketManager.

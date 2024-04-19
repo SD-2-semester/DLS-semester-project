@@ -1,7 +1,7 @@
-from fastapi import WebSocket, APIRouter
-from api.routes.notifications.ws_connection_manager import ws_manager
-from fastapi import WebSocket, WebSocketDisconnect
 import json
+
+from api.routes.notifications.ws_connection_manager import ws_manager
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 router = APIRouter()
 

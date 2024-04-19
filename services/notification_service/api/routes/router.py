@@ -1,7 +1,5 @@
+from api.routes.notifications.router import router as notification_router
 from fastapi import APIRouter
-from api.routes.notifications.router import (
-    router as notification_router,
-)
 
 router = APIRouter()
 

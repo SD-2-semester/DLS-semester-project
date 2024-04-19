@@ -31,4 +31,3 @@ spec:
               value: user
             - name: RABBITMQ_DEFAULT_PASS
               value: password
-              

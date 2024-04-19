@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: message-broker 
+  name: message-broker
   labels:
     name: rabbitmq-service
     micro-service: rabbitmq-service
@@ -9,10 +9,10 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - name: amqp      
+    - name: amqp
       port: 5672
       targetPort: 5672
-    - name: management 
+    - name: management
       port: 15672
       targetPort: 15672
   selector:

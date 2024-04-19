@@ -13,7 +13,7 @@ COPY poetry.lock pyproject.toml ./
 RUN pip install poetry
 
 # Configure Poetry: Do not create a virtual env
-RUN poetry config virtualenvs.create false 
+RUN poetry config virtualenvs.create false
 
 # Install dependencies using Poetry
 RUN poetry install --only main
@@ -31,5 +31,3 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8081","--reload" ]
 FROM builder as prod
 # Command to run the application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8081"]
-
-

@@ -1,9 +1,9 @@
 import json
-import asyncio
-from aio_pika import connect, IncomingMessage, ExchangeType, RobustConnection
+from enum import Enum, auto
+
+from aio_pika import IncomingMessage, RobustConnection, connect
 from api.routes.notifications.ws_connection_manager import ws_manager
 from settings import settings
-from enum import Enum, auto
 
 
 class QueueType(Enum):

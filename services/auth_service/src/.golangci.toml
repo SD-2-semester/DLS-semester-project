@@ -19,7 +19,7 @@ enable = [
   "goconst",   # Detect repeated values that can be made constants
   "gofumpt",   # Or "gofmt", # Enforce standard formatting
   "goimports", # Ensure standard import formatting/ordering
-  "misspell",  # Fix spelling errors  
+  "misspell",  # Fix spelling errors
   "unconvert", # Detect unnecessary type conversions
   "unparam",   # Detect unused function parameters
 
