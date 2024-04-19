@@ -25,4 +25,3 @@ spec:
     name: neo4j-pod
     micro-service: neo4j-service
     app: g-chat-app
-    

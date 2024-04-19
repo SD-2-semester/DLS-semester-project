@@ -41,7 +41,7 @@ spec:
             - name: AUTHSERVICE_RO_DB_USER
               value: auth
             - name: AUTHSERVICE_RO_DB_PASSWORD
-              value: auth        
+              value: auth
             - name: AUTHSERVICE_RO_DB_NAME
               value: auth
             - name: AUTHSERVICE_WO_DB_HOST
@@ -51,7 +51,7 @@ spec:
             - name: AUTHSERVICE_WO_DB_USER
               value: auth
             - name: AUTHSERVICE_WO_DB_PASSWORD
-              value: auth        
+              value: auth
             - name: AUTHSERVICE_WO_DB_NAME
               value: auth
             - name: AUTHSERVICE_RABBITMQ_HOST

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-app-deploy
+  labels:
+    name: notification-app-deploy
+    app: g-chat-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: notification-app-pod
+      micro-service: notification-service
+      app: g-chat-app
+  template:
+    metadata:
+      name: notification-app-pod
+      labels:
+        name: notification-app-pod
+        micro-service: notification-service
+        app: g-chat-app
+    spec:
+      containers:
+        - name: notification-app
+          image: moshizzl3/notification-service-local:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+          env:
+            - name: NOTIFICATION_SERVICE_RABBIT_USER
+              value: user
+            - name: NOTIFICATION_SERVICE_RABBIT_PASS
+              value: password
+            - name: NOTIFICATION_SERVICE_RABBIT_HOST
+              value: message-broker # service name
+            - name: NOTIFICATION_SERVICE_RABBIT_PORT
+              value: "5672"
+            - name: NOTIFICATION_SERVICE_REDIS_HOST
+              value:  redis-db # service name
+            - name: NOTIFICATION_SERVICE_REDIS_PORT
+              value: "6379"

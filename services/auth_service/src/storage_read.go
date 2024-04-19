@@ -162,4 +162,3 @@ func scanIntoUser(rows *sql.Rows) (*User, error) {
 
 	return user, err
 }
-

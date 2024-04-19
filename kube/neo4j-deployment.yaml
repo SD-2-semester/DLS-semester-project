@@ -55,4 +55,3 @@ spec:
         - name: neo4j-import
           persistentVolumeClaim:
             claimName: neo4j-import-claim
-            
