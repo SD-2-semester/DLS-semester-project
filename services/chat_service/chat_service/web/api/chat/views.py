@@ -35,7 +35,7 @@ async def create_chat(
     )
 
 
-@router.get("/user/{user_id}")
+@router.get("/users/{user_id}")
 async def get_chats_where_is_participant(
     user_id: UUID,
     r_daos: ReadDAOs,

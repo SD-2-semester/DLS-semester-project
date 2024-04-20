@@ -9,6 +9,7 @@ from chat_service.web.api import (
     server,
     server_member,
     server_message,
+    ws,
 )
 
 api_router = APIRouter()
@@ -26,3 +27,4 @@ api_router.include_router(
 api_router.include_router(
     chat_message.router, prefix="/chat-messages", tags=["chat-messages"]
 )
+api_router.include_router(ws.router, prefix="/ws", tags=["ws"])

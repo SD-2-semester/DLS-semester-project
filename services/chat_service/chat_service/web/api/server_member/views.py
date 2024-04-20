@@ -11,7 +11,7 @@ from chat_service.web.api.server.dependencies import GetServer, GetServerIfMembe
 router = APIRouter()
 
 
-@router.post("/server/{server_id}", status_code=201)
+@router.post("/servers/{server_id}", status_code=201)
 async def join_server(
     server: GetServer,
     request_dto: dtos.ServerMemberRequestDTO,
@@ -40,7 +40,7 @@ async def join_server(
     )
 
 
-@router.get("/server/{server_id}/user/{user_id}")
+@router.get("/servers/{server_id}/users/{user_id}")
 async def get_members_by_server(
     server: GetServerIfMember,
     r_daos: ReadDAOs,

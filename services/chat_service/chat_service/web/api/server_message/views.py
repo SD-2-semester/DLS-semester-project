@@ -3,6 +3,7 @@ from fastapi import APIRouter
 
 from chat_service.core.pagination_dtos import Pagination
 from chat_service.db import models
+from chat_service.services.ws.ws import ws_manager
 from chat_service.utils import dtos
 from chat_service.utils.daos import ReadDAOs, WriteDAOs
 from chat_service.web.api.server.dependencies import GetServerIfMember
@@ -10,7 +11,10 @@ from chat_service.web.api.server.dependencies import GetServerIfMember
 router = APIRouter()
 
 
-@router.post("/server/{server_id}/user/{user_id}", status_code=201)
+@router.post(
+    "/servers/{server_id}/users/{user_id}",
+    status_code=201,
+)
 async def create_server_message(
     server: GetServerIfMember,
     request_dto: dtos.ServerMessageRequestDTO,
@@ -26,12 +30,22 @@ async def create_server_message(
 
     # TODO: websocket, notification
 
+    await ws_manager.broadcast(
+        str(server.id),
+        message=dtos.ServerPublishDTO(
+            message=request_dto.message,
+            server_id=server.id,
+        ),
+    )
+
+    # notification
+
     return dtos.DefaultCreatedResponse(
         data=dtos.CreatedResponse(id=obj_id),
     )
 
 
-@router.get("/server/{server_id}")
+@router.get("/servers/{server_id}")
 async def get_messages_by_server(
     server: GetServerIfMember,
     r_daos: ReadDAOs,

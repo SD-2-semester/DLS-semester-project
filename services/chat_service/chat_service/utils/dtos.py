@@ -4,6 +4,7 @@ from chat_service.core.base_schemas import (
     DefaultCreatedResponse,
 )
 from chat_service.core.pagination_dtos import OffsetResults, PaginationParams
+from chat_service.services.ws.ws_deps import ChatPublishDTO, ServerPublishDTO
 from chat_service.web.dtos.chat_dtos import ChatDTO, ChatInputDTO
 from chat_service.web.dtos.chat_message_dtos import (
     ChatMessageDTO,

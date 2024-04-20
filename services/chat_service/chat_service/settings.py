@@ -12,7 +12,6 @@ PREFIX = "CHAT_SERVICE_"
 
 
 class BaseSettings(PydanticBaseSettings):
-
     """Base settings."""
 
     model_config = SettingsConfigDict(
@@ -21,7 +20,6 @@ class BaseSettings(PydanticBaseSettings):
 
 
 class LogLevel(str, enum.Enum):
-
     """Possible log levels."""
 
     NOTSET = "NOTSET"
@@ -33,7 +31,6 @@ class LogLevel(str, enum.Enum):
 
 
 class EnvLevel(enum.IntEnum):
-
     """Possible deployment environments."""
 
     local = enum.auto()
@@ -44,7 +41,6 @@ class EnvLevel(enum.IntEnum):
 
 
 class PGSettings(BaseSettings):
-
     """Configuration for database connection."""
 
     host: str = "localhost"
@@ -76,7 +72,6 @@ class PGSettings(BaseSettings):
 
 
 class PGSettingsRO(PGSettings):
-
     """Configuration for database connection."""
 
     model_config = SettingsConfigDict(
@@ -85,8 +80,30 @@ class PGSettingsRO(PGSettings):
     )
 
 
-class Settings(BaseSettings):
+class RedisSettings(BaseSettings):
+    """Configuration for Redis."""
 
+    host: str = "chat_service-redis"
+    port: int = 6379
+    password: SecretStr | None = None
+
+    @property
+    def url(self) -> URL:
+        """Redis URL."""
+        return URL.build(
+            scheme="redis",
+            host=self.host,
+            port=self.port,
+            # password=self.password.get_secret_value() if self.password else None,
+        )
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_prefix=f"{PREFIX}REDIS_",
+    )
+
+
+class Settings(BaseSettings):
     """
     Application settings.
 
@@ -121,6 +138,9 @@ class Settings(BaseSettings):
     # PostgreSQL
     pg_ro: PGSettings = PGSettings()
     pg: PGSettings = PGSettings()
+
+    # Redis
+    redis: RedisSettings = RedisSettings()
 
     @property
     def env_level(self) -> EnvLevel:

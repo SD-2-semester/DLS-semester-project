@@ -1,6 +1,7 @@
 from typing import Awaitable, Callable
 
 from fastapi import FastAPI
+from redis.asyncio import Redis
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
@@ -46,6 +47,14 @@ async def _setup_db(app: FastAPI) -> None:  # pragma: no cover
     await engine.dispose()
 
 
+def _setup_redis(app: FastAPI) -> None:
+    """Setup Redis."""
+    app.state.redis_node = Redis.from_url(
+        str(settings.redis.url),
+        auto_close_connection_pool=False,
+    )
+
+
 def register_startup_event(
     app: FastAPI,
 ) -> Callable[[], Awaitable[None]]:  # pragma: no cover
@@ -64,6 +73,7 @@ def register_startup_event(
         app.middleware_stack = None
         await _setup_db_ro(app)
         await _setup_db(app)
+        # _setup_redis(app)
 
         init_rabbit(app)
         app.middleware_stack = app.build_middleware_stack()
@@ -85,6 +95,7 @@ def register_shutdown_event(
     async def _shutdown() -> None:
         await app.state.db_engine_ro.dispose()
         await app.state.db_engine.dispose()
+        await app.state.redis_connection.disconnect()
 
         await shutdown_rabbit(app)
 

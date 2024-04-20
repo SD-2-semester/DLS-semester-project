@@ -15,6 +15,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       CHAT_SERVICE_HOST: 0.0.0.0
       # postgres read only
@@ -31,6 +33,8 @@ services:
       CHAT_SERVICE_PG_BASE: chat_service
       # rabbitmq
       CHAT_SERVICE_RABBIT_HOST: chat_service-rmq
+      # redis
+      CHAT_SERVICE_REDIS_HOST: chat_service-redis
 
   db:
     image: postgres:13.8-bullseye
@@ -64,6 +68,24 @@ services:
       interval: 3s
       timeout: 3s
       retries: 50
+
+  redis:
+    image: bitnami/redis:7.0.12
+    hostname: chat_service-redis
+    container_name: chat_service-redis
+    restart: always
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - ping
+      interval: 1s
+      timeout: 3s
+      retries: 30
+    ports:
+      - "6379:6379"
 
 volumes:
   chat_service-db-data:

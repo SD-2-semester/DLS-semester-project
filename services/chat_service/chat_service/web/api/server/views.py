@@ -34,7 +34,7 @@ async def create_server(
     )
 
 
-@router.get("/user/{user_id}")
+@router.get("/users/{user_id}")
 async def get_servers_where_is_member(
     user_id: UUID,
     r_daos: ReadDAOs,
