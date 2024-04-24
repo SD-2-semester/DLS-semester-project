@@ -13,6 +13,14 @@ class Http403(HTTPException):
 class Http404(HTTPException):
     """Not found 404."""
 
-    def __init__(self, detail: str = "Record not found"):
+    def __init__(self, detail: str = "Record not found."):
         self.status_code = status.HTTP_404_NOT_FOUND
+        self.detail = detail
+
+
+class Http500(HTTPException):
+    """Internal server error 500."""
+
+    def __init__(self, detail: str = "Internal server error."):
+        self.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         self.detail = detail

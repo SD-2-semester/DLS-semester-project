@@ -21,6 +21,7 @@ aio-pika = "^9.1.4"
 ruff = "^0.3.7"
 types-redis = "^4.6.0.20240417"
 redis = "^5.0.3"
+elasticsearch = { extras = ["async"], version = "7.13.0" }
 
 
 [tool.poetry.dev-dependencies]

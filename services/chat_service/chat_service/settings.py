@@ -103,6 +103,18 @@ class RedisSettings(BaseSettings):
     )
 
 
+class ElasticsearchSettings(BaseSettings):
+    """Configuration for Elasticsearch."""
+
+    cloud_id: str = "cloud_id"
+    api_key: str = "api_key"
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_prefix=f"{PREFIX}ELASTICSEARCH_",
+    )
+
+
 class Settings(BaseSettings):
     """
     Application settings.
@@ -141,6 +153,9 @@ class Settings(BaseSettings):
 
     # Redis
     redis: RedisSettings = RedisSettings()
+
+    # Elasticsearch
+    es: ElasticsearchSettings = ElasticsearchSettings()
 
     @property
     def env_level(self) -> EnvLevel:

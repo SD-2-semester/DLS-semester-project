@@ -1,14 +1,20 @@
+from uuid import UUID
+
 import sqlalchemy as sa
 from fastapi import APIRouter
 
 from chat_service.core.pagination_dtos import Pagination
 from chat_service.db import models
+from chat_service.services.elasticsearch.dependencies import GetES
 from chat_service.services.ws.ws import ws_manager
 from chat_service.utils import dtos
 from chat_service.utils.daos import ReadDAOs, WriteDAOs
 from chat_service.web.api.server.dependencies import GetServerIfMember
 
 router = APIRouter()
+
+server_id1 = UUID("9a9d92e1-e7ef-495b-9ee9-9872fbf29214")
+server_id2 = UUID("1b473a7b-1006-491b-8341-e08b33e7beca")
 
 
 @router.post(
@@ -17,6 +23,7 @@ router = APIRouter()
 )
 async def create_server_message(
     server: GetServerIfMember,
+    elastic: GetES,
     request_dto: dtos.ServerMessageRequestDTO,
     w_daos: WriteDAOs,
 ) -> dtos.DefaultCreatedResponse:
@@ -37,6 +44,8 @@ async def create_server_message(
             server_id=server.id,
         ),
     )
+
+    # await elastic.post_message
 
     # notification
 

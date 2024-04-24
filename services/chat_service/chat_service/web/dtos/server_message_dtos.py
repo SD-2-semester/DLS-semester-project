@@ -26,3 +26,10 @@ class ServerMessageRequestDTO(BaseModel):
     """ServerMessageRequestDTO."""
 
     message: str
+
+
+class ServerElasticDTO(BaseModel):
+    """ServerElasticDTO."""
+
+    server_id: UUID
+    message: str

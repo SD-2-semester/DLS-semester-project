@@ -22,6 +22,7 @@ async def ws_chat_connect(
 
     try:
         while True:
+
             data = await websocket.receive_text()
             await ws_manager.broadcast(
                 s_room_id, dtos.ChatPublishDTO(message=data, chat_id=chat.id)

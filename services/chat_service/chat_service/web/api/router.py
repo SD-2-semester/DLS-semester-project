@@ -3,6 +3,7 @@ from fastapi.routing import APIRouter
 from chat_service.web.api import (
     chat,
     chat_message,
+    demo,
     echo,
     monitoring,
     rabbit,
@@ -28,3 +29,4 @@ api_router.include_router(
     chat_message.router, prefix="/chat-messages", tags=["chat-messages"]
 )
 api_router.include_router(ws.router, prefix="/ws", tags=["ws"])
+api_router.include_router(demo.router, prefix="/demo", tags=["demo"])

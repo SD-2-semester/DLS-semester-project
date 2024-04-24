@@ -27,3 +27,10 @@ class ChatMessageRequestDTO(BaseModel):
 
     user_id: UUID
     message: str
+
+
+class ChatElasticDTO(BaseModel):
+    """ChatElasticDTO."""
+
+    chat_id: UUID
+    message: str
