@@ -4,7 +4,6 @@ from fastapi import APIRouter, Query
 
 from chat_service.services.elasticsearch.dependencies import GetES
 from chat_service.utils import dtos
-from chat_service.web.api.echo.schema import Message
 
 router = APIRouter()
 

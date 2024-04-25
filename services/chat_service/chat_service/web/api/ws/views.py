@@ -14,7 +14,7 @@ async def ws_chat_connect(
     websocket: WebSocket,
     background_tasks: BackgroundTasks,
 ) -> None:
-    """..."""
+    """Connect to chat websocket."""
 
     s_room_id = str(chat.id)
 
@@ -31,13 +31,13 @@ async def ws_chat_connect(
         await ws_manager.remove_user(s_room_id, websocket)
 
 
-@router.websocket("/servers/{chat_id}/users/{user_id}")
+@router.websocket("/servers/{server_id}/users/{user_id}")
 async def ws_server_connect(
     server: GetServerIfMember,
     websocket: WebSocket,
     background_tasks: BackgroundTasks,
 ) -> None:
-    """..."""
+    """Connect to server websocket."""
 
     s_room_id = str(server.id)
 

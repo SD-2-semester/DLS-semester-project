@@ -14,9 +14,6 @@ from chat_service.web.api.server.dependencies import GetServerIfMember
 
 router = APIRouter()
 
-server_id1 = UUID("9a9d92e1-e7ef-495b-9ee9-9872fbf29214")
-server_id2 = UUID("1b473a7b-1006-491b-8341-e08b33e7beca")
-
 
 @router.post(
     "/servers/{server_id}/users/{user_id}",
