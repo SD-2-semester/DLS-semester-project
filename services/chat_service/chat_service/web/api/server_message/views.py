@@ -26,6 +26,7 @@ async def create_server_message(
     server: GetServerIfMember,
     elastic: GetES,
     rmq: GetRMQ,
+    user_id: UUID,
     request_dto: dtos.ServerMessageRequestDTO,
     w_daos: WriteDAOs,
 ) -> dtos.DefaultCreatedResponse:
@@ -54,7 +55,11 @@ async def create_server_message(
     )
 
     await rmq.notify_new_server_message(
-        server_id=server.id,
+        message=dtos.RMQServerNotificationDTO(
+            server_id=server.id,
+            user_id=user_id,
+            message=request_dto.message,
+        ),
     )
 
     return dtos.DefaultCreatedResponse(

@@ -6,7 +6,6 @@ from chat_service.web.api import (
     demo,
     echo,
     monitoring,
-    rabbit,
     server,
     server_member,
     server_message,
@@ -16,7 +15,6 @@ from chat_service.web.api import (
 api_router = APIRouter()
 api_router.include_router(monitoring.router)
 api_router.include_router(echo.router, prefix="/echo", tags=["echo"])
-api_router.include_router(rabbit.router, prefix="/rabbit", tags=["rabbit"])
 api_router.include_router(chat.router, prefix="/chats", tags=["chats"])
 api_router.include_router(server.router, prefix="/servers", tags=["servers"])
 api_router.include_router(

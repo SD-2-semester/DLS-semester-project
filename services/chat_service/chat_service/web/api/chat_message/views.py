@@ -54,7 +54,12 @@ async def create_chat_message(
     )
 
     await rmq.notify_new_chat_message(
-        chat_id=chat.id,
+        message=dtos.RMQChatNotificationDTO(
+            chat_id=chat.id,
+            user_id_1=chat.user_id_1,
+            user_id_2=chat.user_id_2,
+            message=request_dto.message,
+        ),
     )
 
     return dtos.DefaultCreatedResponse(

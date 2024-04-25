@@ -4,8 +4,9 @@ from uuid import UUID
 from aio_pika import Channel, Message
 from aio_pika.pool import Pool
 from fastapi import Depends, Request
+from pydantic import BaseModel
 
-from chat_service.web.api.rabbit.schema import RMQMessageDTO
+from chat_service.utils import dtos
 
 
 def get_rmq_channel_pool(request: Request) -> Pool[Channel]:  # pragma: no cover
@@ -27,45 +28,44 @@ class RMQService:
     async def _publish(
         self,
         routing_key: str,
-        message: str,
-        exchange_name: str = "",
+        message: BaseModel,
     ) -> None:
         """Publish message to a specific routing key."""
 
         async with self.pool.acquire() as conn:
             exchange = await conn.declare_exchange(
-                name=exchange_name,
+                name="",
                 auto_delete=True,
             )
             await exchange.publish(
                 message=Message(
-                    body=message.encode("utf-8"),
+                    body=message.model_dump_json().encode("utf-8"),
                     content_encoding="utf-8",
-                    content_type="text/plain",
+                    content_type="application/json",
                 ),
                 routing_key=routing_key,
             )
 
     async def notify_new_server_message(
         self,
-        server_id: UUID,
+        message: dtos.RMQServerNotificationDTO,
     ) -> None:
         """Notify about new server message."""
 
         await self._publish(
             routing_key="new_server_msg_queue",
-            message=server_id.hex,
+            message=message,
         )
 
     async def notify_new_chat_message(
         self,
-        chat_id: UUID,
+        message: dtos.RMQChatNotificationDTO,
     ) -> None:
         """Notify about new chat message."""
 
         await self._publish(
             routing_key="new_chat_msg_queue",
-            message=chat_id.hex,
+            message=message,
         )
 
 

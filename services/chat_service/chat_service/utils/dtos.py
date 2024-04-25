@@ -14,6 +14,10 @@ from chat_service.web.dtos.chat_message_dtos import (
     ChatMessageInputDTO,
     ChatMessageRequestDTO,
 )
+from chat_service.web.dtos.rmq_dtos import (
+    RMQChatNotificationDTO,
+    RMQServerNotificationDTO,
+)
 from chat_service.web.dtos.server_dtos import ServerDTO, ServerInputDTO
 from chat_service.web.dtos.server_member_dtos import (
     ServerMemberDTO,

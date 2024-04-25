@@ -42,7 +42,9 @@ class ElasticsearchService:
                 body=dto.model_dump_json(),
             )
         except Exception as exc:
-            raise exceptions.Http500(detail=f"Error when posting: {exc}")
+            raise exceptions.Http500(
+                detail=f"Error when posting: {exc}",
+            )
 
     async def search_messages(
         self,
@@ -72,7 +74,9 @@ class ElasticsearchService:
                 body=query,
             )
         except Exception as exc:
-            raise exceptions.Http500(detail=f"Error when searching: {exc}")
+            raise exceptions.Http500(
+                detail=f"Error when searching: {exc}",
+            )
 
         hits = result["hits"]["hits"]
         if not hits:
