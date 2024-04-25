@@ -13,8 +13,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
       redis:
         condition: service_healthy
       elasticsearch:
@@ -34,7 +32,7 @@ services:
       CHAT_SERVICE_PG_PASS: chat_service
       CHAT_SERVICE_PG_BASE: chat_service
       # rabbitmq
-      CHAT_SERVICE_RABBIT_HOST: chat_service-rmq
+      
       # redis
       CHAT_SERVICE_REDIS_HOST: chat_service-redis
 
@@ -56,20 +54,16 @@ services:
     ports:
     - "5433:5432"
 
-
   rabbitmq:
-    image: rabbitmq:3-management
-    hostname: "chat_service-rmq"
-    restart: always
+    image: "rabbitmq:3-management"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: "user"
       RABBITMQ_DEFAULT_PASS: "password"
-      RABBITMQ_DEFAULT_VHOST: "/"
-    healthcheck:
-      test: rabbitmq-diagnostics check_running -q
-      interval: 3s
-      timeout: 3s
-      retries: 50
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
 
   redis:
     image: bitnami/redis:7.0.12
@@ -115,7 +109,7 @@ services:
     
 
 volumes:
-
   chat_service-db-data:
     name: chat_service-db-data
   es-data-elasticsearch:
+  rabbitmq_data:

@@ -34,7 +34,7 @@ class RMQService:
 
         async with self.pool.acquire() as conn:
             exchange = await conn.declare_exchange(
-                name="",
+                name="dls_exchange",
                 auto_delete=True,
             )
             await exchange.publish(

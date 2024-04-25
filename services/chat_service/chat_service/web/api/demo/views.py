@@ -3,12 +3,13 @@ from uuid import UUID
 from fastapi import APIRouter, Query
 
 from chat_service.services.elasticsearch.dependencies import GetES
+from chat_service.services.rabbit.dependencies import GetRMQ
 from chat_service.utils import dtos
 
 router = APIRouter()
 
 
-@router.post("/")
+@router.post("/es")
 async def demo_post_message(
     elastic: GetES,
     message: dtos.ServerElasticCreateDTO,
@@ -22,7 +23,7 @@ async def demo_post_message(
     return message
 
 
-@router.get("/{server_id}")
+@router.get("/es/{server_id}")
 async def demo_get_messages(
     elastic: GetES,
     server_id: UUID,
@@ -39,3 +40,17 @@ async def demo_get_messages(
         message=search,
         out_dto=dtos.ServerElasticDTO,
     )
+
+
+@router.post("/rmq")
+async def demo_notify_new_server_message(
+    rmq: GetRMQ,
+    message: dtos.RMQServerNotificationDTO,
+) -> dtos.RMQServerNotificationDTO:
+    """
+    Demo notify new server message.
+
+    :returns: notified message.
+    """
+    await rmq.notify_new_server_message(message=message)
+    return message

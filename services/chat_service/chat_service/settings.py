@@ -115,6 +115,33 @@ class ElasticsearchSettings(BaseSettings):
     )
 
 
+class RabbitMQSettings(BaseSettings):
+    """Configuration for RabbitMQ."""
+
+    host: str = "rabbitmq"
+    port: int = 5672
+    user: str = "user"
+    password: SecretStr = SecretStr("password")
+    vhost: str = "/"
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_prefix=f"{PREFIX}RABBITMQ_",
+    )
+
+    @property
+    def url(self) -> URL:
+        """Assemble RabbitMQ URL from settings."""
+        return URL.build(
+            scheme="amqp",
+            host=self.host,
+            port=self.port,
+            user=self.user,
+            password=self.password.get_secret_value(),
+            path=self.vhost,
+        )
+
+
 class Settings(BaseSettings):
     """
     Application settings.
@@ -137,25 +164,14 @@ class Settings(BaseSettings):
 
     log_level: LogLevel = LogLevel.INFO
 
-    # Variables for RabbitMQ
-    rabbit_host: str = "chat_service-rmq"
-    rabbit_port: int = 5672
-    rabbit_user: str = "guest"
-    rabbit_pass: str = "guest"
-    rabbit_vhost: str = "/"
-
     rabbit_pool_size: int = 2
     rabbit_channel_pool_size: int = 10
 
-    # PostgreSQL
     pg_ro: PGSettings = PGSettings()
     pg: PGSettings = PGSettings()
-
-    # Redis
     redis: RedisSettings = RedisSettings()
-
-    # Elasticsearch
     es: ElasticsearchSettings = ElasticsearchSettings()
+    rabbit: RabbitMQSettings = RabbitMQSettings()
 
     @property
     def env_level(self) -> EnvLevel:
@@ -167,22 +183,6 @@ class Settings(BaseSettings):
                 return env_level
 
         raise ValueError(f"Unknown environment: {self.env}. ")
-
-    @property
-    def rabbit_url(self) -> URL:
-        """
-        Assemble RabbitMQ URL from settings.
-
-        :return: rabbit URL.
-        """
-        return URL.build(
-            scheme="amqp",
-            host=self.rabbit_host,
-            port=self.rabbit_port,
-            user=self.rabbit_user,
-            password=self.rabbit_pass,
-            path=self.rabbit_vhost,
-        )
 
     model_config = SettingsConfigDict(
         env_file=".env",

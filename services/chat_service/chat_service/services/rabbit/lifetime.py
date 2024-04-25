@@ -19,7 +19,7 @@ def init_rabbit(app: FastAPI) -> None:  # pragma: no cover
 
         :return: async connection to RabbitMQ.
         """
-        return await aio_pika.connect_robust(str(settings.rabbit_url))
+        return await aio_pika.connect_robust(str(settings.rabbit.url))
 
     # This pool is used to open connections.
     connection_pool: Pool[AbstractRobustConnection] = Pool(
