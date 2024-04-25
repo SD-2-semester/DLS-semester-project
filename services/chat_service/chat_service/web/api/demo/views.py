@@ -9,7 +9,7 @@ from chat_service.web.api.echo.schema import Message
 router = APIRouter()
 
 
-@router.post("/", response_model=Message)
+@router.post("/")
 async def demo_post_message(
     elastic: GetES,
     message: dtos.ServerElasticCreateDTO,
