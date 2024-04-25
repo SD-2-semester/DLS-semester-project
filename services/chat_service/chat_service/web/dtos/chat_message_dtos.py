@@ -29,8 +29,16 @@ class ChatMessageRequestDTO(BaseModel):
     message: str
 
 
-class ChatElasticDTO(BaseModel):
+class ChatElasticCreateDTO(dtos.ComputedCreatedAt):
     """ChatElasticDTO."""
 
     chat_id: UUID
     message: str
+
+
+class ChatElasticDTO(dtos.BaseOrmModel):
+    """ChatElasticDTO."""
+
+    chat_id: UUID
+    message: str
+    created_at: datetime

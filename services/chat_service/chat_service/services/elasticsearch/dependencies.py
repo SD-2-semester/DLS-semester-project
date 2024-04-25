@@ -8,8 +8,9 @@ from pydantic import BaseModel
 from chat_service import exceptions
 from chat_service.utils import dtos
 
-MessageDTO = dtos.ChatElasticDTO | dtos.ServerElasticDTO
-OutDTO = TypeVar("OutDTO", bound=MessageDTO)
+MessageCreateDTO = dtos.ChatElasticCreateDTO | dtos.ServerElasticCreateDTO
+MessageResponseDTO = dtos.ChatElasticDTO | dtos.ServerElasticDTO
+OutDTO = TypeVar("OutDTO", bound=MessageResponseDTO)
 
 
 def get_es_client(request: Request) -> AsyncElasticsearch:
@@ -26,7 +27,7 @@ class ElasticsearchService:
     ) -> None:
         self.es_client = es_client
 
-    async def post_message(self, index: str, dto: MessageDTO) -> None:
+    async def post_message(self, index: str, dto: MessageCreateDTO) -> None:
         """Post DTO data to an index."""
         try:
             await self.es_client.index(
@@ -34,30 +35,24 @@ class ElasticsearchService:
                 body=dto.model_dump_json(),
             )
         except Exception as exc:
-            raise exceptions.Http500(detail=f"Error: {exc}")
+            raise exceptions.Http500(detail=f"Error when posting: {exc}")
 
     async def search_messages(
         self,
-        obj_id: UUID,
+        obj_id: Annotated[UUID, "Either chat_id or server_id."],
         index: Literal["server_message", "chat_message"],
         message: str,
         out_dto: Type[OutDTO],
     ) -> list[OutDTO]:
         """Search messages by object id and message."""
 
+        field_name = "server_id" if index == "server_message" else "chat_id"
+
         query = {
             "query": {
                 "bool": {
                     "must": [
-                        {
-                            "match": {
-                                (
-                                    "server_id"
-                                    if index == "server_message"
-                                    else "chat_id"
-                                ): obj_id
-                            }
-                        },
+                        {"match": {f"{field_name}.keyword": obj_id}},
                         {"match": {"message": message}},
                     ]
                 }
@@ -70,16 +65,13 @@ class ElasticsearchService:
                 body=query,
             )
         except Exception as exc:
-            raise exceptions.Http500(detail=f"Error: {exc}")
+            raise exceptions.Http500(detail=f"Error when searching: {exc}")
 
         hits = result["hits"]["hits"]
-
-        print(result)
-
         if not hits:
             return []
 
-        return [out_dto.model_validate(hit["_source"]) for hit in hits]
+        return [out_dto.model_validate(hit["_source"]) for hit in hits]  # type: ignore
 
 
 GetES = Annotated[ElasticsearchService, Depends(ElasticsearchService)]

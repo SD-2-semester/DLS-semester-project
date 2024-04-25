@@ -28,8 +28,16 @@ class ServerMessageRequestDTO(BaseModel):
     message: str
 
 
-class ServerElasticDTO(BaseModel):
+class ServerElasticCreateDTO(dtos.ComputedCreatedAt):
     """ServerElasticDTO."""
 
     server_id: UUID
     message: str
+
+
+class ServerElasticDTO(dtos.BaseOrmModel):
+    """ServerElasticDTO."""
+
+    server_id: UUID
+    message: str
+    created_at: datetime

@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Query
 
 from chat_service.services.elasticsearch.dependencies import GetES
 from chat_service.utils import dtos
@@ -12,12 +12,12 @@ router = APIRouter()
 @router.post("/", response_model=Message)
 async def demo_post_message(
     elastic: GetES,
-    message: dtos.ServerElasticDTO,
-) -> dtos.ServerElasticDTO:
+    message: dtos.ServerElasticCreateDTO,
+) -> dtos.ServerElasticCreateDTO:
     """
     Demo post message.
 
-    :returns: None.
+    :returns: posted message.
     """
     await elastic.post_message(index="server_message", dto=message)
     return message

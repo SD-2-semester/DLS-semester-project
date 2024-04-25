@@ -1,17 +1,24 @@
 import json
 from typing import Annotated
 
-from fastapi import BackgroundTasks, WebSocket
+from fastapi import BackgroundTasks, Depends, Request, WebSocket
+from redis.asyncio import Redis
 from redis.asyncio.client import PubSub
 
-from chat_service.services.ws.ws_deps import MessageType, get_redis
+from chat_service.services.ws.ws_deps import MessageType
+
+
+def get_redis(request: Request) -> Redis:  # type: ignore
+    """Get redis connection."""
+
+    return request.app.state.redis
 
 
 class RedisPubSubManager:
     """Initialize the RedisPubSubManager."""
 
     def __init__(self) -> None:
-        self.redis = get_redis()
+        self.redis: Redis = Depends(get_redis)  # type: ignore
 
     async def connect(self) -> None:
         """Connects to the Redis server and initializes the pubsub client."""

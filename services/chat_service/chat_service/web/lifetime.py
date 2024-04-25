@@ -48,7 +48,7 @@ async def _setup_db(app: FastAPI) -> None:  # pragma: no cover
 
 def _setup_redis(app: FastAPI) -> None:
     """Setup Redis."""
-    app.state.redis_node = Redis.from_url(
+    app.state.redis = Redis.from_url(
         str(settings.redis.url),
         auto_close_connection_pool=False,
     )

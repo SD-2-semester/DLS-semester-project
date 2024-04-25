@@ -1,6 +1,7 @@
 import uuid
+from datetime import datetime, timezone
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 
 class BaseOrmModel(BaseModel):
@@ -21,3 +22,13 @@ class DefaultCreatedResponse(BaseModel):
     data: CreatedResponse
     success: bool = True
     message: str | None = "Object was created!"
+
+
+class ComputedCreatedAt(BaseModel):
+    """ComputedCreatedAt."""
+
+    @computed_field  # type: ignore
+    @property
+    def created_at(self) -> datetime:
+        """Get current datetime."""
+        return datetime.now(timezone.utc)
