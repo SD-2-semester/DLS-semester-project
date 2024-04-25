@@ -6,6 +6,7 @@ from fastapi import APIRouter
 from chat_service.core.pagination_dtos import Pagination
 from chat_service.db.models import Chat, ChatMessage
 from chat_service.services.elasticsearch.dependencies import GetES
+from chat_service.services.rabbit.dependencies import GetRMQ
 from chat_service.services.ws.ws import ws_manager
 from chat_service.utils import dtos
 from chat_service.utils.daos import ReadDAOs, WriteDAOs
@@ -20,6 +21,7 @@ _path = "/chats/{chat_id}/users/{user_id}"
 async def create_chat_message(
     chat: GetChatIfParticipant,
     elastic: GetES,
+    rmq: GetRMQ,
     user_id: UUID,
     request_dto: dtos.ChatMessageRequestDTO,
     w_daos: WriteDAOs,
@@ -49,6 +51,10 @@ async def create_chat_message(
             chat_id=chat.id,
             message=request_dto.message,
         ),
+    )
+
+    await rmq.notify_new_chat_message(
+        chat_id=chat.id,
     )
 
     return dtos.DefaultCreatedResponse(
