@@ -18,6 +18,9 @@ def get_es_client(request: Request) -> AsyncElasticsearch:
     return request.app.state.es
 
 
+Index = Literal["server_message", "chat_message"]
+
+
 class ElasticsearchService:
     """Elasticsearch Service."""
 
@@ -27,7 +30,11 @@ class ElasticsearchService:
     ) -> None:
         self.es_client = es_client
 
-    async def post_message(self, index: str, dto: MessageCreateDTO) -> None:
+    async def post_message(
+        self,
+        index: Index,
+        dto: MessageCreateDTO,
+    ) -> None:
         """Post DTO data to an index."""
         try:
             await self.es_client.index(
@@ -40,7 +47,7 @@ class ElasticsearchService:
     async def search_messages(
         self,
         obj_id: Annotated[UUID, "Either chat_id or server_id."],
-        index: Literal["server_message", "chat_message"],
+        index: Index,
         message: str,
         out_dto: Type[OutDTO],
     ) -> list[OutDTO]:

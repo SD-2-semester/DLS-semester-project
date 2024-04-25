@@ -35,8 +35,6 @@ async def create_server_message(
         ),
     )
 
-    # TODO: websocket, notification
-
     await ws_manager.broadcast(
         str(server.id),
         message=dtos.ServerPublishDTO(
@@ -45,7 +43,13 @@ async def create_server_message(
         ),
     )
 
-    # await elastic.post_message
+    await elastic.post_message(
+        index="server_message",
+        dto=dtos.ServerElasticCreateDTO(
+            server_id=server.id,
+            message=request_dto.message,
+        ),
+    )
 
     # notification
 
