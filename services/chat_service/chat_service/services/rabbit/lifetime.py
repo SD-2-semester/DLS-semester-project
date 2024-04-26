@@ -24,7 +24,7 @@ def init_rabbit(app: FastAPI) -> None:  # pragma: no cover
     # This pool is used to open connections.
     connection_pool: Pool[AbstractRobustConnection] = Pool(
         get_connection,
-        max_size=settings.rabbit_pool_size,
+        max_size=settings.rabbit.rabbit_pool_size,
     )
 
     async def get_channel() -> AbstractChannel:
@@ -41,7 +41,7 @@ def init_rabbit(app: FastAPI) -> None:  # pragma: no cover
     # This pool is used to open channels.
     channel_pool: Pool[aio_pika.Channel] = Pool(
         get_channel,
-        max_size=settings.rabbit_channel_pool_size,
+        max_size=settings.rabbit.rabbit_channel_pool_size,
     )
 
     app.state.rmq_pool = connection_pool

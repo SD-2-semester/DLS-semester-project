@@ -124,6 +124,9 @@ class RabbitMQSettings(BaseSettings):
     password: SecretStr = SecretStr("password")
     vhost: str = "/"
 
+    rabbit_pool_size: int = 2
+    rabbit_channel_pool_size: int = 10
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_prefix=f"{PREFIX}RABBITMQ_",
@@ -164,8 +167,7 @@ class Settings(BaseSettings):
 
     log_level: LogLevel = LogLevel.INFO
 
-    rabbit_pool_size: int = 2
-    rabbit_channel_pool_size: int = 10
+    auth_service_url: str = "http://localhost:8001"
 
     pg_ro: PGSettings = PGSettings()
     pg: PGSettings = PGSettings()

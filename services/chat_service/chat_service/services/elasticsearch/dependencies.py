@@ -10,6 +10,7 @@ from chat_service.utils import dtos
 
 MessageCreateDTO = dtos.ChatElasticCreateDTO | dtos.ServerElasticCreateDTO
 MessageResponseDTO = dtos.ChatElasticDTO | dtos.ServerElasticDTO
+
 OutDTO = TypeVar("OutDTO", bound=MessageResponseDTO)
 
 
