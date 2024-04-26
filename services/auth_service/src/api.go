@@ -87,6 +87,10 @@ func (s *APIServer) setupRoutes(router *mux.Router) {
 		"/users/me", makeHTTPHandleFunc(s.handleDeleteCurrentUser),
 	).Methods(http.MethodDelete)
 
+	apiRouter.HandleFunc(
+		"/users/{id}", makeHTTPHandleFunc(s.handleGetUser),
+	).Methods(http.MethodGet)
+
 	// auth endpoints
 	apiRouter.HandleFunc(
 		"/auth/login-email", makeHTTPHandleFunc(s.handleLoginEmail),
@@ -286,6 +290,30 @@ func (s *APIServer) handleDeleteCurrentUser(
 	}
 
 	return SuccessResponse(w, "user deleted")
+}
+
+// @Summary Get user by ID
+// @Tags users
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} UserResponse
+// @Failure 400 {object} APIError
+// @Router /api/v1/users/{id} [get]
+func (s *APIServer) handleGetUser(w http.ResponseWriter, r *http.Request) error {
+	user, err := s.readStore.GetUserByID(uuid.MustParse(mux.Vars(r)["id"]))
+
+	if err != nil {
+		return err
+	}
+
+	userResponse := &UserResponse{
+		ID:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
+		CreatedAt: user.CreatedAt,
+	}
+
+	return WriteJSON(w, http.StatusOK, userResponse)
 }
 
 func WriteJSON(w http.ResponseWriter, status int, v any) error {
