@@ -1,0 +1,222 @@
+[tool.poetry]
+name = "chat_service"
+version = "0.1.0"
+description = ""
+authors = []
+maintainers = []
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.100.0"
+uvicorn = { version = "^0.22.0", extras = ["standard"] }
+pydantic = "^2"
+pydantic-settings = "^2"
+yarl = "^1.9.2"
+ujson = "^5.8.0"
+SQLAlchemy = { version = "^2.0.18", extras = ["asyncio"] }
+asyncpg = { version = "^0.28.0", extras = ["sa"] }
+httptools = "^0.6.0"
+aio-pika = "^9.1.4"
+ruff = "^0.3.7"
+types-redis = "^4.6.0.20240417"
+redis = "^5.0.3"
+elasticsearch = { extras = ["async"], version = "7.13.0" }
+
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.2.1"
+flake8 = "~4.0.1"
+mypy = "^1.1.1"
+isort = "^5.11.4"
+pre-commit = "^3.0.1"
+wemake-python-styleguide = "^0.17.0"
+black = "^22.12.0"
+autoflake = "^1.6.1"
+pytest-cov = "^4.0.0"
+anyio = "^3.6.2"
+pytest-env = "^0.8.1"
+httpx = "^0.23.3"
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+src_paths = ["chat_service"]
+
+[tool.mypy]
+strict = true
+ignore_missing_imports = true
+allow_subclassing_any = true
+allow_untyped_calls = true
+pretty = true
+show_error_codes = true
+implicit_reexport = true
+allow_untyped_decorators = true
+warn_return_any = false
+namespace_packages = true
+plugins = ["sqlalchemy.ext.mypy.plugin", "pydantic.mypy"]
+exclude = ["migrations/"]
+
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning",
+    "ignore:.*unclosed.*:ResourceWarning",
+]
+env = [
+    "CHAT_SERVICE_ENVIRONMENT=pytest",
+    "CHAT_SERVICE_DB_BASE=chat_service_test",
+]
+
+[fastapi-template.options]
+project_name = "chat_service"
+api_type = "rest"
+enable_redis = "None"
+enable_rmq = "True"
+ci_type = "github"
+enable_migrations = "None"
+enable_taskiq = "None"
+enable_kube = "None"
+kube_name = "chat-service"
+enable_routers = "True"
+enable_kafka = "None"
+enable_loguru = "None"
+traefik_labels = "None"
+add_dummy = "None"
+orm = "sqlalchemy"
+self_hosted_swagger = "None"
+prometheus_enabled = "None"
+sentry_enabled = "None"
+otlp_enabled = "None"
+pydanticv1 = "None"
+gunicorn = "None"
+add_users = "None"
+cookie_auth = "None"
+jwt_auth = "None"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.ruff]
+# List of enabled rulsets.
+# See https://docs.astral.sh/ruff/rules/ for more information.
+lint.select = [
+    "E",   # Error
+    "F",   # Pyflakes
+    "W",   # Pycodestyle
+    "C90", # McCabe complexity
+    "I",   # Isort
+    "N",   # pep8-naming
+    "D",   # Pydocstyle
+    "ANN", # Pytype annotations
+    "S",   # Bandit
+    "B",   # Bugbear
+    "COM", # Commas
+    "C4",  # Comprehensions
+    "ISC", # Implicit string concat
+    "PIE", # Unnecessary code
+    "T20", # Catch prints
+    "PYI", # validate pyi files
+    "Q",   # Checks for quotes
+    "RSE", # Checks raise statements
+    "RET", # Checks return statements
+    "SLF", # Self checks
+    "SIM", # Simplificator
+    "PTH", # Pathlib checks
+    "ERA", # Checks for commented out code
+    "PL",  # PyLint checks
+    "RUF", # Specific to Ruff checks
+]
+lint.ignore = [
+    "D105",    # Missing docstring in magic method
+    "D106",    # Missing docstring in public nested class
+    "D107",    # Missing docstring in __init__
+    "D202",    # No blank lines allowed after function docstring
+    "D211",    # No blank lines allowed before class docstring
+    "D212",    # Multi-line docstring summary should start at the first line
+    "D401",    # First line should be in imperative mood
+    "D104",    # Missing docstring in public package
+    "D100",    # Missing docstring in public module
+    "ANN102",  # Missing type annotation for self in method
+    "ANN101",  # Missing type annotation for argument
+    "ANN401",  # typing.Any are disallowed in `**kwargs
+    "PLR0913", # Too many arguments for function call
+    "COM812",  # Missing trailing comma
+    "PYI036",  # bad-exit-annotation
+    "PLW0603", # Using the global statement
+    "ANN204",  # Missing type annotation for self in method
+    "PLR2004", # Magic value used in comparison
+    "RET505",  # Return statement with no value
+    "N805",
+    "B904",
+    "ISC003",
+    "ERA001",
+    "ANN206",
+    "RET506",
+    "S311",
+    "S608",
+    "S105",
+    "B008",
+]
+exclude = [
+    ".venv/",
+    "scripts/",
+    "Lib",                                 # Folder on some Windows machines
+    "chat_service/db/migrations/versions",
+
+]
+lint.mccabe = { max-complexity = 10 }
+line-length = 88
+
+
+[tool.ruff.lint.per-file-ignores]
+"chat_service/db/factory/*" = [
+    "S311",   # Use of standard pseudo-random generators
+    "RUF012", # Mutable class attributes should be annotated with `typing.ClassVar`
+    "SLF001", # Private member accessed
+    "S105",   # Possible hardcoded password
+]
+"chat_service/tests/*" = [
+    "S101", # Use of assert detected
+    "S311", # Use of standard pseudo-random generators
+    "S105", # Possible hardcoded password
+    "S106", # Possible hardcoded password
+    "F841", # Local variable is assigned to but never used
+    "D103", # Missing docstring in public function
+]
+"*/__init__.py" = [
+    "F401", # Imported but unused
+]
+"chat_service/settings.py" = [
+    "N805", # First argument of a method should be named `self` (pydantic)
+]
+"*/dtos/*" = [
+    "N805", # First argument of a method should be named `self` (pydantic)
+]
+"daos.py" = [
+    "D102", # Missing docstring in public method
+]
+"dtos.py" = [
+    "F401", # Imported but unused
+    "E402", # Module level import not at top of file
+]
+"models.py" = [
+    "F401", # Imported but unused
+]
+"dependencies.py" = [
+    "F401", # Imported but unused
+]
+"enums.py" = [
+    "F401", # Imported but unused
+]
+"notifiers.py" = [
+    "F401", # Imported but unused
+]
+
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+ignore-decorators = ["typing.overload"]
