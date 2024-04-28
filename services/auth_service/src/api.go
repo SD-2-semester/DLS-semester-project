@@ -63,6 +63,9 @@ func (s *APIServer) Run() {
 }
 
 func (s *APIServer) setupRoutes(router *mux.Router) {
+
+	router.Use(CORSMiddleware)
+
 	apiRouter := router.PathPrefix("/api/v1").Subrouter()
 
 	// middleware

@@ -119,7 +119,7 @@ func (s *PostgresStoreRead) GetUserByID(id uuid.UUID) (*User, error) {
 		return scanIntoUser(rows)
 	}
 
-	return nil, fmt.Errorf("user %d not found", id)
+	return nil, fmt.Errorf("user %s not found", id)
 }
 
 func (s *PostgresStoreRead) GetUserByEmail(email string) (*User, error) {
