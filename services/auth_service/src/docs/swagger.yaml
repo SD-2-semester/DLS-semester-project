@@ -130,6 +130,28 @@ paths:
       summary: Get all users
       tags:
       - users
+  /api/v1/users/{id}:
+    get:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.APIError'
+      summary: Get user by ID
+      tags:
+      - users
   /api/v1/users/me:
     delete:
       produces:
