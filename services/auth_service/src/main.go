@@ -38,18 +38,24 @@ func main() {
 		log.Fatal(err)
 	}
 
-	publisher, err := NewRabbitMQPublisher(
+	messenger, err := NewRMQMessenger(
 		LoadRabbitMQConfig(),
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	e := messenger.SubscribeUserCreatedError(writeStore)
+	if e != nil {
+		log.Fatal(e)
+	}
+
 	server := NewAPIServer(
 		":8080",
 		readStore,
 		writeStore,
-		publisher,
+		messenger,
 	)
 	server.Run()
+
 }

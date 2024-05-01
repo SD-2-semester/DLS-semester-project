@@ -11,27 +11,27 @@ import (
 )
 
 const (
-	queueName  = "new_user_queue"
 	maxRetries = 20
 	retryDelay = 2 * time.Second
 )
 
-type Publisher interface {
+type Messenger interface {
 	PublishUserCreated(u *CreateUserPublish) error
+	SubscribeUserCreatedError(writeStore WriteStorage) error
 }
 
-type RabbitMQPublisher struct {
+type RMQMessenger struct {
 	conn    *amqp.Connection
 	channel *amqp.Channel
 }
 
-func NewRabbitMQPublisher(config RabbitMQConfig) (*RabbitMQPublisher, error) {
-	log.Println("Initializing RabbitMQ publisher...")
+func NewRMQMessenger(config RabbitMQConfig) (*RMQMessenger, error) {
+	log.Println("Initializing RabbitMQ messenger...")
 
 	var conn *amqp.Connection
 	var err error
 
-	rabbitMQUrl := fmt.Sprintf(
+	RMQUrl := fmt.Sprintf(
 		"amqp://%s:%s@%s:%s/",
 		config.User,
 		config.Password,
@@ -43,7 +43,7 @@ func NewRabbitMQPublisher(config RabbitMQConfig) (*RabbitMQPublisher, error) {
 		log.Printf(
 			"Attempting to connect to RabbitMQ, attempt %d/%d\n", attempt, maxRetries,
 		)
-		conn, err = amqp.Dial(rabbitMQUrl)
+		conn, err = amqp.Dial(RMQUrl)
 		if err == nil {
 			log.Println("RabbitMQ connection established")
 			break
@@ -66,28 +66,18 @@ func NewRabbitMQPublisher(config RabbitMQConfig) (*RabbitMQPublisher, error) {
 		return nil, fmt.Errorf("failed to open a channel: %w", err)
 	}
 
-	_, err = channel.QueueDeclare(
-		queueName, // name of the queue
-		true,      // durable
-		false,     // delete when unused
-		false,     // exclusive
-		false,     // no-wait
-		nil,       // arguments
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to declare a queue: %w", err)
-	}
-
-	return &RabbitMQPublisher{
+	return &RMQMessenger{
 		conn:    conn,
 		channel: channel,
 	}, nil
 }
 
-func (r *RabbitMQPublisher) PublishUserCreated(u *CreateUserPublish) error {
+func (r *RMQMessenger) PublishUserCreated(u *CreateUserPublish) error {
 	log.Printf("Publishing user created event for user: %s\n", u.Username)
-	if r.channel == nil {
-		return fmt.Errorf("RabbitMQ channel not initialized")
+
+	err := declareQueue(r.channel, "new_user_queue")
+	if err != nil {
+		return fmt.Errorf("failed to declare a queue: %w", err)
 	}
 
 	// serialize the CreateUserRequest to JSON
@@ -101,10 +91,10 @@ func (r *RabbitMQPublisher) PublishUserCreated(u *CreateUserPublish) error {
 
 	err = r.channel.PublishWithContext(
 		ctx,
-		"",        // exchange
-		queueName, // routing key (queue name)
-		false,     // mandatory
-		false,     // immediate
+		"",               // exchange
+		"new_user_queue", // routing key (queue name)
+		false,            // mandatory
+		false,            // immediate
 		amqp.Publishing{
 			DeliveryMode: amqp.Persistent,
 			ContentType:  "application/json",
@@ -116,6 +106,59 @@ func (r *RabbitMQPublisher) PublishUserCreated(u *CreateUserPublish) error {
 	}
 
 	log.Printf("User created event published for user: %s\n", u.Username)
+
+	return nil
+}
+
+func (r *RMQMessenger) SubscribeUserCreatedError(writeStore WriteStorage) error {
+	log.Println("Subscribing to user created error events...")
+
+	err := declareQueue(r.channel, "new_user_error_queue")
+	if err != nil {
+		return fmt.Errorf("failed to declare a queue: %w", err)
+	}
+
+	msgs, err := r.channel.Consume(
+		"new_user_error_queue", // queue
+		"",                     // consumer
+		true,                   // auto-ack
+		false,                  // exclusive
+		false,                  // no-local
+		false,                  // no-wait
+		nil,                    // args
+	)
+	if err != nil {
+		return fmt.Errorf("failed to register a consumer: %w", err)
+	}
+
+	go func() {
+		for msg := range msgs {
+			var user CreateUserPublish
+			err := json.Unmarshal(msg.Body, &user)
+			if err != nil {
+				log.Printf("Failed to unmarshal user created event: %v\n", err)
+				continue
+			}
+			writeStore.HardDeleteUser(user.ID)
+		}
+	}()
+	log.Printf("finished subscribing to user created error events\n")
+
+	return nil
+}
+
+func declareQueue(ch *amqp.Channel, name string) error {
+	_, err := ch.QueueDeclare(
+		name,  // name of the queue
+		true,  // durable
+		false, // delete when unused
+		false, // exclusive
+		false, // no-wait
+		nil,   // arguments
+	)
+	if err != nil {
+		return fmt.Errorf("failed to declare a queue: %w", err)
+	}
 
 	return nil
 }
