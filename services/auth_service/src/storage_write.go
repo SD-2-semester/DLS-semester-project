@@ -11,6 +11,7 @@ import (
 type WriteStorage interface {
 	CreateUser(*User) error
 	DeleteUser(uuid.UUID) error
+	HardDeleteUser(uuid.UUID) error
 }
 
 type PostgresStoreWrite struct {
@@ -80,5 +81,14 @@ func (s *PostgresStoreWrite) DeleteUser(id uuid.UUID) error {
 	`
 
 	_, err := s.db.Exec(query, id, time.Now().UTC())
+	return err
+}
+
+func (s *PostgresStoreWrite) HardDeleteUser(id uuid.UUID) error {
+	query := `
+		DELETE FROM users WHERE id = $1
+	`
+
+	_, err := s.db.Exec(query, id)
 	return err
 }

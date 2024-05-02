@@ -20,21 +20,21 @@ type APIServer struct {
 	listenAddr string
 	readStore  ReadStorage
 	writeStore WriteStorage
-	publisher  Publisher
+	messenger  Messenger
 }
 
 func NewAPIServer(
 	listenAddr string,
 	readStore ReadStorage,
 	writeStore WriteStorage,
-	publisher Publisher,
+	messenger Messenger,
 ) *APIServer {
 
 	return &APIServer{
 		listenAddr: listenAddr,
 		readStore:  readStore,
 		writeStore: writeStore,
-		publisher:  publisher,
+		messenger:  messenger,
 	}
 }
 
@@ -199,7 +199,7 @@ func (s *APIServer) handleRegisterUser(w http.ResponseWriter, r *http.Request) e
 		Username: user.Username,
 	}
 
-	s.publisher.PublishUserCreated(publishData)
+	s.messenger.PublishUserCreated(publishData)
 
 	return WriteJSON(w, http.StatusCreated, DefaultCreatedResponse{ID: user.ID})
 }
@@ -242,7 +242,7 @@ func (s *APIServer) handleLoginEmail(w http.ResponseWriter, r *http.Request) err
 // @Success 200 {object} APISuccess
 // @Router /api/v1/health [get]
 func (s *APIServer) handleHealthCheck(w http.ResponseWriter, _ *http.Request) error {
-	s.publisher.PublishUserCreated(&CreateUserPublish{
+	s.messenger.PublishUserCreated(&CreateUserPublish{
 		ID:       uuid.New(),
 		Username: "yoyoyo",
 	})
