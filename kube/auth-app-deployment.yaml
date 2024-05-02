@@ -12,6 +12,10 @@ spec:
       name: auth-app-pod
       micro-service: auth-service
       app: g-chat-app
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3
   template:
     metadata:
       name: auth-app-pod

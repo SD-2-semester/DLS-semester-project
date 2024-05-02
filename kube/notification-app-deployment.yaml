@@ -12,6 +12,10 @@ spec:
       name: notification-app-pod
       micro-service: notification-service
       app: g-chat-app
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3
   template:
     metadata:
       name: notification-app-pod
