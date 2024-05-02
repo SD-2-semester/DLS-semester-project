@@ -1,4 +1,5 @@
 use actix_web::{middleware::Logger, web, App, HttpServer};
+use tokio::sync::Mutex;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -28,6 +29,7 @@ async fn main() -> std::io::Result<()> {
     // Create queues + exchange if they dont exist
     rabbitmq::connection::create_exchange(&channel, "new_relation_queue").await;
     rabbitmq::connection::create_queue(&channel, "new_user_queue").await;
+    rabbitmq::connection::create_queue(&channel, "new_user_error_queue").await;
 
     // Create consumers
     // let consumer_a =
@@ -41,9 +43,14 @@ async fn main() -> std::io::Result<()> {
     //         async move { rabbitmq::connection::print_result(&consumer_a).await },
     //     );
 
+    let channel_clone = channel.clone();
     let _consumer_b_handle = tokio::spawn(async move {
-        rabbitmq::connection::create_new_user(&consumer_b, graph_data_for_consumer_b)
-            .await
+        rabbitmq::connection::create_new_user(
+            &consumer_b,
+            graph_data_for_consumer_b,
+            channel_clone,
+        )
+        .await
     });
 
     // Openapi stuff
