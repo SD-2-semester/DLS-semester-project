@@ -2,7 +2,9 @@ use crate::dao;
 use crate::dtos::user_dtos::UserInputDTO;
 use actix_web::web;
 use bcrypt::hash;
+use deadpool_lapin::lapin::protocol::channel;
 use dotenv::dotenv;
+use futures::future::err;
 use lapin::{
     message::DeliveryResult,
     options::{
@@ -137,32 +139,61 @@ pub async fn print_result(consumer: &Consumer) {
 
 /// Create a new user in the database, by consuming message.
 /// We use db from app state.
-pub async fn create_new_user(consumer: &Consumer, db: web::Data<Graph>) {
-    let fake_password = "fake_password";
-    match hash_password(&fake_password) {
-        Ok(hashed_password) => println!("Hashed, {hashed_password}"),
-        Err(e) => {
-            println!("error: {e}")
-        }
-    }
+pub async fn create_new_user(
+    consumer: &Consumer,
+    db: web::Data<Graph>,
+    channel: Channel,
+) {
+    let error_queue: &str = "new_user_error_queue";
+
     consumer.set_delegate(move |delivery: DeliveryResult| {
         let db_clone = db.clone();
+        let channel_clone = channel.clone();
         async move {
             let delivery = match delivery {
                 Ok(Some(delivery)) => delivery,
                 Ok(None) => return,
                 Err(error) => {
                     dbg!("Failed to consume queue message {}", error);
+
                     return;
                 }
             };
-
+            
             if let Ok(payload_str) = std::str::from_utf8(&delivery.data) {
-                if let Ok(user_input_dto) =
-                    serde_json::from_str::<UserInputDTO>(payload_str)
-                {
-                    dao::user_dao::create_node(&db_clone, user_input_dto).await;
-                    println!("created: {:?}", payload_str)
+                match serde_json::from_str::<UserInputDTO>(payload_str) {
+                    Ok(user_input_dto) => {
+                        match dao::user_dao::create_node(&db_clone, user_input_dto)
+                            .await
+                        {
+                            Ok(Some(user_id)) => {
+                                println!("User created with ID: {:?}", user_id);
+                            }
+                            Ok(None) => {
+                                println!("User creation failed: No ID returned");
+                                publish_to_queue(
+                                    &channel_clone,
+                                    error_queue,
+                                    &delivery.data,
+                                )
+                                .await;
+                            }
+                            Err(err) => {
+                                println!("Database error occurred: {:?}", err);
+                                publish_to_queue(
+                                    &channel_clone,
+                                    error_queue,
+                                    &delivery.data,
+                                )
+                                .await;
+                            }
+                        }
+                    }
+                    Err(err) => {
+                        println!("Error deserializing user input: {:?}", err);
+                        publish_to_queue(&channel_clone, error_queue, &delivery.data)
+                            .await;
+                    }
                 }
             }
 
@@ -172,8 +203,4 @@ pub async fn create_new_user(consumer: &Consumer, db: web::Data<Graph>) {
                 .expect("Failed to ack send_webhook_event message");
         }
     });
-}
-
-pub fn hash_password(password: &str) -> Result<String, bcrypt::BcryptError> {
-    hash(password, 4)
 }

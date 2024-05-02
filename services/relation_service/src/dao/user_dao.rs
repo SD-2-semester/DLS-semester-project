@@ -7,7 +7,7 @@ use uuid;
 pub async fn create_node(
     graph: &Graph,
     user_dto: UserInputDTO,
-) -> Result<(), neo4rs::Error> {
+) -> Result<Option<i32>, neo4rs::Error> {
     let created_at = chrono::Utc::now();
 
     let query = query(
@@ -18,9 +18,13 @@ pub async fn create_node(
     .param("user_name", user_dto.user_name)
     .param("created_at", created_at.to_rfc3339());
 
-    graph.run(query).await?;
-
-    Ok(())
+    let mut result = graph.execute(query).await?;
+    if let Some(row) = result.next().await? {
+        let user_id: i32 = row.get("user_id").unwrap();
+        Ok(Some(user_id))
+    } else {
+        Ok(None)
+    }
 }
 
 /// Create relationship between two users in the database.
