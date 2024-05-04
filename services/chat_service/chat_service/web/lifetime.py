@@ -13,14 +13,8 @@ from chat_service.settings import EnvLevel, settings
 
 async def _setup_db_ro(app: FastAPI) -> None:  # pragma: no cover
     """Setup read only database."""
-    print("*" * 100)
-    print("*" * 100)
-    print(settings.pg_ro.url)
-    print("*" * 100)
-    print("*" * 100)
-
     engine = create_async_engine(
-        "postgresql+asyncpg://repl_user:repl_user@postgresql-slave:5432/chat_service",
+        str(settings.pg_ro.url),
         echo=settings.pg_ro.echo,
     )
     session_factory = async_sessionmaker(engine, expire_on_commit=False)

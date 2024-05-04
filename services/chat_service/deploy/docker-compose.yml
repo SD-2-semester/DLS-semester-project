@@ -23,14 +23,15 @@ services:
       CHAT_SERVICE_PG_HOST: postgresql-master
       CHAT_SERVICE_PG_PORT: 5432
       CHAT_SERVICE_PG_USER: chat_service
-      CHAT_SERVICE_PG_PASS: chat_service
+      CHAT_SERVICE_PG_PASSWORD: chat_service
       CHAT_SERVICE_PG_BASE: chat_service
       # postgres read only
       CHAT_SERVICE_PG_RO_HOST: postgresql-slave
       CHAT_SERVICE_PG_RO_PORT: 5432
       CHAT_SERVICE_PG_RO_USER: repl_user
-      CHAT_SERVICE_PG_RO_PASS: repl_user
+      CHAT_SERVICE_PG_RO_PASSWORD: repl_user
       CHAT_SERVICE_PG_RO_BASE: chat_service_repl
+      CHAT_SERVICE_PG_RO_DATABASE: chat_service
       # redis
       CHAT_SERVICE_REDIS_HOST: chat_service-redis
 

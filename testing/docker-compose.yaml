@@ -1,0 +1,46 @@
+version: "3"
+services:
+  postgresql-master:
+    image: postgres:13.8-bullseye
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - chat_service-db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRESQL_PGAUDIT_LOG: READ,WRITE
+      POSTGRESQL_LOG_HOSTNAME: true
+      POSTGRESQL_REPLICATION_MODE: master
+      POSTGRESQL_REPLICATION_USER: repl_user
+      POSTGRESQL_REPLICATION_PASSWORD: repl_user
+      POSTGRES_PASSWORD: chat_service
+      POSTGRES_USER: chat_service
+      POSTGRES_DB: chat_service
+      ALLOW_EMPTY_PASSWORD: "yes"
+    healthcheck:
+      test: pg_isready -U chat_service
+      interval: 2s
+      timeout: 3s
+      retries: 40
+
+  postgresql-slave:
+    image: postgres:13.8-bullseye
+    restart: always
+    ports:
+      - 5433:5432
+    depends_on:
+      - postgresql-master
+    environment:
+      POSTGRES_PASSWORD: chat_service_repl
+      POSTGRESQL_MASTER_HOST: postgresql-master
+      POSTGRESQL_PGAUDIT_LOG: READ
+      POSTGRESQL_LOG_HOSTNAME: "true"
+      POSTGRESQL_REPLICATION_MODE: slave
+      POSTGRESQL_REPLICATION_USER: repl_user
+      POSTGRESQL_REPLICATION_PASSWORD: repl_user
+      POSTGRESQL_MASTER_PORT_NUMBER: 5432
+      ALLOW_EMPTY_PASSWORD: "yes"
+
+volumes:
+  chat_service-db-data:
+    name: chat_service-db-data
