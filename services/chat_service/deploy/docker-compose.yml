@@ -1,7 +1,7 @@
 version: '3.9'
 
 services:
-  api: &main_app
+  api:
     build:
       context: .
       dockerfile: ./deploy/Dockerfile
@@ -11,7 +11,7 @@ services:
     env_file:
       - .env
     depends_on:
-      db:
+      postgresql-master:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -19,49 +19,71 @@ services:
         condition: service_healthy
     environment:
       CHAT_SERVICE_HOST: 0.0.0.0
-      # postgres read only
-      CHAT_SERVICE_PG_RO_HOST: chat_service-db
-      CHAT_SERVICE_PG_RO_PORT: 5432
-      CHAT_SERVICE_PG_RO_USER: chat_service
-      CHAT_SERVICE_PG_RO_PASS: chat_service
-      CHAT_SERVICE_PG_RO_BASE: chat_service
-      # postgres 
-      CHAT_SERVICE_PG_HOST: chat_service-db
+      # postgres
+      CHAT_SERVICE_PG_HOST: postgresql-master
       CHAT_SERVICE_PG_PORT: 5432
       CHAT_SERVICE_PG_USER: chat_service
       CHAT_SERVICE_PG_PASS: chat_service
       CHAT_SERVICE_PG_BASE: chat_service
-      # rabbitmq
-      
+      # postgres read only
+      CHAT_SERVICE_PG_RO_HOST: postgresql-slave
+      CHAT_SERVICE_PG_RO_PORT: 5432
+      CHAT_SERVICE_PG_RO_USER: repl_user
+      CHAT_SERVICE_PG_RO_PASS: repl_user
+      CHAT_SERVICE_PG_RO_BASE: chat_service_repl
       # redis
       CHAT_SERVICE_REDIS_HOST: chat_service-redis
 
-  db:
-    image: postgres:13.8-bullseye
-    hostname: chat_service-db
-    environment:
-      POSTGRES_PASSWORD: chat_service
-      POSTGRES_USER: chat_service
-      POSTGRES_DB: chat_service
+  postgresql-master:
+    image: docker.io/bitnami/postgresql:latest
+    restart: always
+    ports:
+      - "5432:5432"
     volumes:
       - chat_service-db-data:/var/lib/postgresql/data
-    restart: always
+    environment:
+      POSTGRESQL_PGAUDIT_LOG: READ,WRITE
+      POSTGRESQL_LOG_HOSTNAME: true
+      POSTGRESQL_REPLICATION_MODE: master
+      POSTGRESQL_REPLICATION_USER: repl_user
+      POSTGRESQL_REPLICATION_PASSWORD: repl_user
+      POSTGRESQL_USERNAME: chat_service
+      POSTGRESQL_PASSWORD: chat_service
+      POSTGRESQL_DATABASE: chat_service
+      ALLOW_EMPTY_PASSWORD: yes
     healthcheck:
       test: pg_isready -U chat_service
       interval: 2s
       timeout: 3s
       retries: 40
+
+  postgresql-slave:
+    image: docker.io/bitnami/postgresql:latest
+    restart: always
     ports:
-    - "5433:5432"
+      - "5433:5432"
+    depends_on:
+      - postgresql-master
+    environment:
+      POSTGRESQL_USERNAME: chat_service_repl
+      POSTGRESQL_PASSWORD: chat_service_repl
+      POSTGRESQL_MASTER_HOST: postgresql-master
+      POSTGRESQL_PGAUDIT_LOG: READ,WRITE
+      POSTGRESQL_LOG_HOSTNAME: true
+      POSTGRESQL_REPLICATION_MODE: slave
+      POSTGRESQL_REPLICATION_USER: repl_user
+      POSTGRESQL_REPLICATION_PASSWORD: repl_user
+      POSTGRESQL_MASTER_PORT_NUMBER: 5432
+
 
   rabbitmq:
-    image: "rabbitmq:3-management"
+    image: rabbitmq:3-management
     ports:
       - "5672:5672"
       - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: "user"
-      RABBITMQ_DEFAULT_PASS: "password"
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
@@ -73,10 +95,7 @@ services:
     environment:
       ALLOW_EMPTY_PASSWORD: "yes"
     healthcheck:
-      test:
-        - CMD
-        - redis-cli
-        - ping
+      test: ["CMD", "redis-cli", "ping"]
       interval: 1s
       timeout: 3s
       retries: 30
@@ -91,13 +110,13 @@ services:
     ports:
       - 9200:9200
     volumes:
-      - "es-data-elasticsearch:/usr/share/elasticsearch/data"
-
+      - es-data-elasticsearch:/usr/share/elasticsearch/data
     healthcheck:
       test: ["CMD-SHELL", "curl http://localhost:9200"]
       interval: 10s
       timeout: 10s
       retries: 120
+
   kibana:
     image: docker.elastic.co/kibana/kibana:7.13.0
     environment:
@@ -106,10 +125,10 @@ services:
       - 5601:5601
     depends_on:
       - elasticsearch
-    
 
 volumes:
   chat_service-db-data:
     name: chat_service-db-data
   es-data-elasticsearch:
   rabbitmq_data:
+  

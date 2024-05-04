@@ -169,8 +169,9 @@ class Settings(BaseSettings):
 
     auth_service_url: str = "http://localhost:8001"
 
-    pg_ro: PGSettings = PGSettings()
     pg: PGSettings = PGSettings()
+    pg_ro: PGSettingsRO = PGSettingsRO()
+
     redis: RedisSettings = RedisSettings()
     es: ElasticsearchSettings = ElasticsearchSettings()
     rabbit: RabbitMQSettings = RabbitMQSettings()

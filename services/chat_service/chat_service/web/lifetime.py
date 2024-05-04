@@ -8,23 +8,24 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from chat_service.db.meta import meta
 from chat_service.services.rabbit.lifetime import init_rabbit, shutdown_rabbit
-from chat_service.settings import settings
+from chat_service.settings import EnvLevel, settings
 
 
 async def _setup_db_ro(app: FastAPI) -> None:  # pragma: no cover
     """Setup read only database."""
+    print("*" * 100)
+    print("*" * 100)
+    print(settings.pg_ro.url)
+    print("*" * 100)
+    print("*" * 100)
 
     engine = create_async_engine(
-        str(settings.pg_ro.url),
+        "postgresql+asyncpg://repl_user:repl_user@postgresql-slave:5432/chat_service",
         echo=settings.pg_ro.echo,
     )
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
     app.state.db_engine_ro = engine
     app.state.db_session_ro_factory = session_factory
-
-    async with engine.begin() as connection:
-        await connection.run_sync(meta.create_all)
-        await connection.execute(text("CREATE EXTENSION IF NOT EXISTS citext"))
 
     await engine.dispose()
 
@@ -41,7 +42,19 @@ async def _setup_db(app: FastAPI) -> None:  # pragma: no cover
 
     async with engine.begin() as connection:
         await connection.run_sync(meta.create_all)
-        await connection.execute(text("CREATE EXTENSION IF NOT EXISTS citext"))
+
+        query = """
+            GRANT SELECT ON ALL TABLES IN SCHEMA public TO repl_user;
+        """
+
+        await connection.execute(text(query))
+
+        query = """
+            ALTER DEFAULT PRIVILEGES IN SCHEMA public
+            GRANT SELECT ON TABLES TO repl_user;
+        """
+
+        await connection.execute(text(query))
 
     await engine.dispose()
 
@@ -80,8 +93,11 @@ def register_startup_event(
     @app.on_event("startup")
     async def _startup() -> None:
         app.middleware_stack = None
-        await _setup_db_ro(app)
+        print(settings.pg.url)
+        print(settings.pg_ro.url)
         await _setup_db(app)
+        await _setup_db_ro(app)
+
         # _setup_redis(app)
         await _setup_es(app)
 
