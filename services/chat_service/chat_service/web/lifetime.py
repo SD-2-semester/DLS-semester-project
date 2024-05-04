@@ -87,8 +87,6 @@ def register_startup_event(
     @app.on_event("startup")
     async def _startup() -> None:
         app.middleware_stack = None
-        print(settings.pg.url)
-        print(settings.pg_ro.url)
         await _setup_db(app)
         await _setup_db_ro(app)
 

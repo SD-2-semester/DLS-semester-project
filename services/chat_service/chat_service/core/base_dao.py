@@ -97,7 +97,7 @@ class BaseDAORO(
     async def get_offset_results(
         self,
         out_dto: Type[OutputDTO],
-        pagination: PaginationType | None = None,
+        pagination: PaginationType,
         query: sa.sql.Select[tuple[Model]] | None = None,
     ) -> OffsetResults[OutputDTO]:
         """Get offset paginated records."""
