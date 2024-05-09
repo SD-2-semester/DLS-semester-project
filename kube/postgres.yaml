@@ -22,7 +22,6 @@ spec:
     requests:
       storage: 1Gi 
   storageClassName: local-path
-
 --- # Auth postgres deployment
 apiVersion: apps/v1
 kind: Deployment
@@ -91,7 +90,7 @@ spec:
             - name: POSTGRES_DB
               value: chat_service
             - name: POSTGRES_HOST
-              value: chat-db-master
+              value: postgres-auth-service
           volumeMounts:
             - name: postgres-chat-data
               mountPath: /var/lib/postgresql/data
@@ -128,4 +127,4 @@ spec:
       port: 5432
       targetPort: 5432
   selector:
-    app: chat-db
+    app: chat-db-master

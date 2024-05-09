@@ -1,14 +1,14 @@
 apiVersion:  v1
 kind: Service
 metadata:
-  name: chat-service
+  name: chat-service-svc
   labels:
-    name: chat-service
+    name: chat-service-svc
     app: g-chat-app
 spec:
   selector:
     name: chat-app-pod
-    micro-service: chat-service
+    micro-service: chat-service-svc
     app: g-chat-app
   ports:
     - protocol: TCP

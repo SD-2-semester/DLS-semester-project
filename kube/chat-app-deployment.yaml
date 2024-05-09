@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: chat-app-deloy
+  name: chat-app-deploy
   labels:
-    name: chat-app-deloy
+    name: chat-app-deploy
     app: g-chat-app
 spec:
   replicas: 1
@@ -27,28 +27,28 @@ spec:
           ports:
             - containerPort: 8080
           env:
+            - name: CHAT_SERVICE_HOST
+              value: chat-service-svc
+            - name: CHAT_SERVICE_PORT
+              value: "8080"
             # postgres read/write
             - name: CHAT_SERVICE_PG_HOST
-              value: chat-db-master
+              value:  postgres-chat-service # service name
             - name: CHAT_SERVICE_PG_PORT
               value: "5432"
             - name: CHAT_SERVICE_PG_USER
-              value: chat
+              value: chat_service
             - name: CHAT_SERVICE_PG_PASSWORD
-              value: chat
-            - name: CHAT_SERVICE_PG_BASE
-              value: chat
+              value: chat_service
             # postgres read only
             - name: CHAT_SERVICE_PG_HOST
-              value: chat-db-master
+              value:  postgres-chat-service # service name
             - name: CHAT_SERVICE_PG_PORT
               value: "5432"
             - name: CHAT_SERVICE_PG_USER
-              value: chat
+              value: chat_service
             - name: CHAT_SERVICE_PG_PASSWORD
-              value: chat
-            - name: CHAT_SERVICE_PG_BASE
-              value: chat
+              value: chat_service
             # redis
             - name: CHAT_SERVICE_REDIS_HOST
               value: chat_service-redis
