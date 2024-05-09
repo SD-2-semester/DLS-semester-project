@@ -1,3 +1,28 @@
+--- # Auth postgres persistent volume claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-auth-data-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi 
+  storageClassName: local-path  
+--- # Chat postgres persistent volume claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-chat-data-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi 
+  storageClassName: local-path
+
 --- # Auth postgres deployment
 apiVersion: apps/v1
 kind: Deployment
@@ -74,3 +99,33 @@ spec:
         - name: postgres-chat-data
           persistentVolumeClaim:
             claimName: postgres-chat-data-claim
+--- # Auth postgres service
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-auth-service
+  labels:
+    app: auth-db
+spec:
+  type: ClusterIP
+  ports:
+    - name: default
+      port: 5432
+      targetPort: 5432
+  selector:
+    app: auth-db
+--- # Chat postgres service
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-chat-service
+  labels:
+    app: chat-db
+spec:
+  type: ClusterIP
+  ports:
+    - name: default
+      port: 5432
+      targetPort: 5432
+  selector:
+    app: chat-db
