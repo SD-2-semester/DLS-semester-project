@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: notification-app
-          image: moshizzl3/notification-service-local:latest
+          image: mslaursen/dls-exam:notification_service
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081

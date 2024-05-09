@@ -1,31 +1,25 @@
+--- # Auth postgres deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: postgres-deploy
+  name: postgres-auth-deploy
   labels:
-    name: postgres-deploy
-    app: g-chat-app
+    app: auth-db
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: postgres-pod
-      micro-service: postgres-service
-      app: g-chat-app
+      app: auth-db
   template:
     metadata:
-      name: postgres-pod
       labels:
-        name: postgres-pod
-        micro-service: postgres-service
-        app: g-chat-app
+        app: auth-db
     spec:
       containers:
         - name: postgres
           image: postgres:16
           ports:
             - containerPort: 5432
-              name: default
           env:
             - name: POSTGRES_USER
               value: auth
@@ -34,61 +28,49 @@ spec:
             - name: POSTGRES_DB
               value: auth
             - name: POSTGRES_HOST
-              value: db-postgres
-          volumeMounts: # Volumes to mount
-            - name: postgres-data
+              value: postgres-auth-service
+          volumeMounts:
+            - name: postgres-auth-data
               mountPath: /var/lib/postgresql/data
-
       volumes:
-        - name: postgres-data
+        - name: postgres-auth-data
           persistentVolumeClaim:
-            claimName: postgres-data-claim
-
-
----
-
+            claimName: postgres-auth-data-claim
+--- # Chat postgres deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: postgres-deploy
+  name: postgres-chat-deploy
   labels:
-    name: postgres-deploy
-    app: g-chat-app
+    app: chat-db-master
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: postgres-pod
-      micro-service: postgres-service
-      app: g-chat-app
+      app: chat-db-master
   template:
     metadata:
-      name: postgres-pod
       labels:
-        name: postgres-pod
-        micro-service: postgres-service
-        app: g-chat-app
+        app: chat-db-master
     spec:
       containers:
         - name: postgres
           image: postgres:16
           ports:
             - containerPort: 5432
-              name: default
           env:
             - name: POSTGRES_USER
-              value: auth
+              value: chat_service
             - name: POSTGRES_PASSWORD
-              value: auth
+              value: chat_service
             - name: POSTGRES_DB
-              value: auth
+              value: chat_service
             - name: POSTGRES_HOST
-              value: db-postgres
-          volumeMounts: # Volumes to mount
-            - name: postgres-data
+              value: chat-db-master
+          volumeMounts:
+            - name: postgres-chat-data
               mountPath: /var/lib/postgresql/data
-
       volumes:
-        - name: postgres-data
+        - name: postgres-chat-data
           persistentVolumeClaim:
-            claimName: postgres-data-claim
+            claimName: postgres-chat-data-claim

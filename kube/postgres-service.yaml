@@ -1,11 +1,10 @@
+--- # Auth postgres service
 apiVersion: v1
 kind: Service
 metadata:
-  name: db-postgres
+  name: postgres-auth-service
   labels:
-    name: postgres-service
-    micro-service: postgres-service
-    app: g-chat-app
+    app: auth-db
 spec:
   type: ClusterIP
   ports:
@@ -13,6 +12,19 @@ spec:
       port: 5432
       targetPort: 5432
   selector:
-    name: postgres-pod
-    micro-service: postgres-service
-    app: g-chat-app
+    app: auth-db
+--- # Chat postgres service
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-chat-service
+  labels:
+    app: chat-db
+spec:
+  type: ClusterIP
+  ports:
+    - name: default
+      port: 5432
+      targetPort: 5432
+  selector:
+    app: chat-db

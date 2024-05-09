@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-app-deloy
+  labels:
+    name: chat-app-deloy
+    app: g-chat-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: chat-app-pod
+      micro-service: chat-service
+      app: g-chat-app
+  template:
+    metadata:
+      name: chat-app-pod
+      labels:
+        name: chat-app-pod
+        micro-service: chat-service
+        app: g-chat-app
+    spec:
+      containers:
+        - name: chat-app
+          image: mslaursen/dls-exam:chat_service
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            # postgres read/write
+            - name: CHAT_SERVICE_PG_HOST
+              value: chat-db-master
+            - name: CHAT_SERVICE_PG_PORT
+              value: "5432"
+            - name: CHAT_SERVICE_PG_USER
+              value: chat
+            - name: CHAT_SERVICE_PG_PASSWORD
+              value: chat
+            - name: CHAT_SERVICE_PG_BASE
+              value: chat
+            # postgres read only
+            - name: CHAT_SERVICE_PG_HOST
+              value: chat-db-master
+            - name: CHAT_SERVICE_PG_PORT
+              value: "5432"
+            - name: CHAT_SERVICE_PG_USER
+              value: chat
+            - name: CHAT_SERVICE_PG_PASSWORD
+              value: chat
+            - name: CHAT_SERVICE_PG_BASE
+              value: chat
+            # redis
+            - name: CHAT_SERVICE_REDIS_HOST
+              value: chat_service-redis

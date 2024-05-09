@@ -9,7 +9,7 @@ metadata:
 spec:
   containers:
     - name: auth-app
-      image: moshizzl3/auth-service-local:latest
+      image: mslaursen/dls-exam:auth_service
       imagePullPolicy: IfNotPresent
       ports:
         - containerPort: 8080
@@ -21,7 +21,7 @@ spec:
       #   periodSeconds: 10
       env:
         - name: AUTHSERVICE_RO_DB_HOST
-          value: db-postgres # service name
+          value: postgres-auth-service # service name
         - name: AUTHSERVICE_RO_DB_PORT
           value: "5432"
         - name: AUTHSERVICE_RO_DB_USER
@@ -31,7 +31,7 @@ spec:
         - name: AUTHSERVICE_RO_DB_NAME
           value: auth
         - name: AUTHSERVICE_WO_DB_HOST
-          value: db-postgres # service name
+          value: postgres-auth-service # service name
         - name: AUTHSERVICE_WO_DB_PORT
           value: "5432"
         - name: AUTHSERVICE_WO_DB_USER

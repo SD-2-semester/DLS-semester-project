@@ -1,11 +1,24 @@
+--- # Auth postgres persistent volume claim
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: postgres-data-claim
+  name: postgres-auth-data-claim
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: 1Gi 
+  storageClassName: local-path  
+--- # Chat postgres persistent volume claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-chat-data-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi 
   storageClassName: local-path

@@ -9,7 +9,7 @@ metadata:
 spec:
   containers:
     - name: relation-app
-      image: moshizzl3/relation-service-local:latest
+      image: mslaursen/dls-exam:relation_service
       imagePullPolicy: IfNotPresent
       ports:
         - containerPort: 8000
