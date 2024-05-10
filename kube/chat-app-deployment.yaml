@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-app-deploy
+  labels:
+    name: chat-app-deploy
+    app: g-chat-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: chat-app-pod
+      micro-service: chat-service
+      app: g-chat-app
+  template:
+    metadata:
+      name: chat-app-pod
+      labels:
+        name: chat-app-pod
+        micro-service: chat-service
+        app: g-chat-app
+    spec:
+      containers:
+        - name: chat-app
+          image: mslaursen/dls-exam:chat_service
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8085
+          env:
+            - name: CHAT_SERVICE_HOST
+              value: "0.0.0.0"
+            - name: CHAT_SERVICE_PORT
+              value: "8085"
+            # postgres read/write
+            - name: CHAT_SERVICE_PG_HOST
+              value:  postgres-chat-service # service name
+            - name: CHAT_SERVICE_PG_PORT
+              value: "5432"
+            - name: CHAT_SERVICE_PG_USER
+              value: chat_service
+            - name: CHAT_SERVICE_PG_PASSWORD
+              value: chat_service
+            # postgres read only
+            - name: CHAT_SERVICE_PG_HOST
+              value:  postgres-chat-service # service name
+            - name: CHAT_SERVICE_PG_PORT
+              value: "5432"
+            - name: CHAT_SERVICE_PG_USER
+              value: chat_service
+            - name: CHAT_SERVICE_PG_PASSWORD
+              value: chat_service
+            # redis
+            - name: NOTIFICATION_SERVICE_REDIS_HOST
+              value:  redis-chat-service # service name
+            - name: NOTIFICATION_SERVICE_REDIS_PORT
+              value: "6379"
+            # elasticsearch
+            - name: CHAT_SERVICE_ELASTICSEARCH_HOST
+              value: elasticsearch-service
+            # rabbitmq
+            - name: CHAT_SERVICE_RABBITMQ_HOST
+              value: message-broker
+            - name: AUTHSERVICE_RABBITMQ_PORT
+              value: "5672"
+            - name: AUTHSERVICE_RABBITMQ_USER
+              value: user
+            - name: AUTHSERVICE_RABBITMQ_PASSWORD
+              value: password

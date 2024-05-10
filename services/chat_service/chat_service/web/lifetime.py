@@ -37,18 +37,18 @@ async def _setup_db(app: FastAPI) -> None:  # pragma: no cover
     async with engine.begin() as connection:
         await connection.run_sync(meta.create_all)
 
-        query = """
-            GRANT SELECT ON ALL TABLES IN SCHEMA public TO repl_user;
-        """
+    # query = """
+    #    GRANT SELECT ON ALL TABLES IN SCHEMA public TO repl_user;
+    # """
 
-        await connection.execute(text(query))
+    # await connection.execute(text(query))
 
-        query = """
-            ALTER DEFAULT PRIVILEGES IN SCHEMA public
-            GRANT SELECT ON TABLES TO repl_user;
-        """
+    # query = """
+    #    ALTER DEFAULT PRIVILEGES IN SCHEMA public
+    #    GRANT SELECT ON TABLES TO repl_user;
+    # """
 
-        await connection.execute(text(query))
+    # await connection.execute(text(query))
 
     await engine.dispose()
 

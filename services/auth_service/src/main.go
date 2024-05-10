@@ -23,9 +23,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	log.Printf("Initializing read storage...\n")
 	if err := readStore.Init(); err != nil {
 		log.Fatal(err)
 	}
+	log.Printf("Read storage initialized\n")
 
 	writeStore, err := NewPostgresStoreWrite(
 		LoadDBConfig("AUTHSERVICE_WO_"),
@@ -38,6 +40,9 @@ func main() {
 		log.Fatal(err)
 	}
 
+	log.Printf("Write storage initialized\n")
+
+	log.Printf("Initializing rabbitmq messenger...\n")
 	messenger, err := NewRMQMessenger(
 		LoadRabbitMQConfig(),
 	)
@@ -45,10 +50,14 @@ func main() {
 		log.Fatal(err)
 	}
 
+	log.Printf("Rabbitmq messenger initialized\n")
+
 	e := messenger.SubscribeUserCreatedError(writeStore)
 	if e != nil {
 		log.Fatal(e)
 	}
+
+	log.Printf("Subscribed to user created error\n")
 
 	server := NewAPIServer(
 		":8080",

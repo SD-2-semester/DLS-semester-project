@@ -1,7 +1,20 @@
+--- # Notification pvc
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: redis-data-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: local-path
+--- # Chat pvc
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-chat-data-claim
 spec:
   accessModes:
     - ReadWriteOnce
