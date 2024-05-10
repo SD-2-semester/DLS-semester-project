@@ -1,0 +1,45 @@
+
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-auth-prefix
+spec:
+  stripPrefixRegex:
+    regex:
+      - "^/auth(/|$)"
+      - "^/notification(/|$)"
+      - "^/relation(/|$)"
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: traefik-ingress
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: default-strip-auth-prefix@kubernetescrd
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /auth
+        pathType: Prefix
+        backend:
+          service:
+            name: auth-app-service
+            port: 
+              number: 80
+      - path: /relation
+        pathType: Prefix
+        backend:
+          service:
+            name: relation-app-service
+            port: 
+              number: 80
+      - path: /notification
+        pathType: Prefix
+        backend:
+          service:
+            name: notification-app-service
+            port: 
+              number: 80
