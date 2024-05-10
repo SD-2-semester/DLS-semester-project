@@ -64,7 +64,7 @@ def _setup_redis(app: FastAPI) -> None:
 async def _setup_es(app: FastAPI) -> None:
     """Setup Elasticsearch."""
     es_client = AsyncElasticsearch(
-        hosts=[{"host": "host.docker.internal", "port": 9200}],
+        hosts=[{"host": settings.es.host, "port": 9200}],
         api_key=settings.es.api_key,
     )
     await es_client.info()
@@ -90,7 +90,7 @@ def register_startup_event(
         await _setup_db(app)
         await _setup_db_ro(app)
 
-        # _setup_redis(app)
+        _setup_redis(app)
         await _setup_es(app)
 
         init_rabbit(app)
