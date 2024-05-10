@@ -4,15 +4,15 @@ metadata:
   name: chat-service-svc
   labels:
     name: chat-service-svc
+    micro-service: chat-service
     app: g-chat-app
 spec:
+  type: NodePort
   selector:
     name: chat-app-pod
-    micro-service: chat-service-svc
+    micro-service: chat-service
     app: g-chat-app
   ports:
-    - protocol: TCP
-      port: 8080
-      targetPort: 8080
-      nodePort: 32602
-  type: NodePort
+    - port: 8085
+      targetPort: 8085
+      nodePort: 30007

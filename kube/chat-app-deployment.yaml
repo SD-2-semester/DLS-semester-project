@@ -25,12 +25,12 @@ spec:
           image: mslaursen/dls-exam:chat_service
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8080
+            - containerPort: 8085
           env:
             - name: CHAT_SERVICE_HOST
               value: "0.0.0.0"
             - name: CHAT_SERVICE_PORT
-              value: "8080"
+              value: "8085"
             # postgres read/write
             - name: CHAT_SERVICE_PG_HOST
               value:  postgres-chat-service # service name
@@ -50,8 +50,10 @@ spec:
             - name: CHAT_SERVICE_PG_PASSWORD
               value: chat_service
             # redis
-            - name: CHAT_SERVICE_REDIS_HOST
-              value: chat_service-redis
+            - name: NOTIFICATION_SERVICE_REDIS_HOST
+              value:  redis-chat-service # service name
+            - name: NOTIFICATION_SERVICE_REDIS_PORT
+              value: "6379"
             # elasticsearch
             - name: CHAT_SERVICE_ELASTICSEARCH_HOST
               value: elasticsearch-service

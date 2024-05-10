@@ -1,3 +1,4 @@
+--- # Redis Deployment notification
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -32,3 +33,38 @@ spec:
       - name: redis-data
         persistentVolumeClaim:
           claimName: redis-data-claim
+--- # Redis deployment chat
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-chat-deploy
+  labels:
+    name: redis-chat-deploy
+    app: g-chat-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: redis-chat-pod
+      micro-service: redis-chat-service
+      app: g-chat-app
+  template:
+    metadata:
+      name: redis-chat
+      labels:
+        name: redis-chat-pod
+        micro-service: redis-chat-service
+        app: g-chat-app
+    spec:
+      containers:
+      - name: redis-chat
+        image: redis:latest
+        ports:
+        - containerPort: 6379
+        volumeMounts:
+        - name: redis-chat-data
+          mountPath: /data
+      volumes:
+      - name: redis-chat-data
+        persistentVolumeClaim:
+          claimName: redis-chat-data-claim
