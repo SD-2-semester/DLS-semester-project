@@ -19,9 +19,9 @@ def get_app() -> FastAPI:
     app = FastAPI(
         title="chat_service",
         version=metadata.version("chat_service"),
-        docs_url="/api/docs",
-        redoc_url="/api/redoc",
-        openapi_url="/api/openapi.json",
+        docs_url="/chat/api/docs",
+        redoc_url="/chat/api/redoc",
+        openapi_url="/chat/api/openapi.json",
         default_response_class=UJSONResponse,
     )
 

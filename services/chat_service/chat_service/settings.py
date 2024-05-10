@@ -108,6 +108,7 @@ class ElasticsearchSettings(BaseSettings):
 
     cloud_id: str = "cloud_id"
     api_key: str = "api_key"
+    host: str = "host.docker.internal"
 
     model_config = SettingsConfigDict(
         env_file=".env",
