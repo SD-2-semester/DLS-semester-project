@@ -38,6 +38,6 @@ def get_app() -> FastAPI:
     register_shutdown_event(app)
 
     # Main router for the API.
-    app.include_router(router=api_router, prefix="/chat/api")
+    app.include_router(router=api_router, prefix="/chat/api/v1")
 
     return app
