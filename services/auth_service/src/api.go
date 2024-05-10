@@ -106,7 +106,7 @@ func (s *APIServer) setupRoutes(router *mux.Router) {
 	// swagger docs
 	// http://localhost:8080/swagger/index.html
 	router.PathPrefix("/auth/swagger/").Handler(httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:8080/auth/swagger/doc.json"),
+		httpSwagger.URL("http://localhost/auth/swagger/doc.json"),
 	)).Methods(http.MethodGet)
 
 	// default handler for unmatched routes
