@@ -105,8 +105,8 @@ func (s *APIServer) setupRoutes(router *mux.Router) {
 
 	// swagger docs
 	// http://localhost:8080/swagger/index.html
-	router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:8080/swagger/doc.json"),
+	router.PathPrefix("/auth/swagger/").Handler(httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8080/auth/swagger/doc.json"),
 	)).Methods(http.MethodGet)
 
 	// default handler for unmatched routes
@@ -139,7 +139,7 @@ func shutdownGracefully(server *http.Server) {
 // @Tags users
 // @Produce json
 // @Success 200 {object} []UserResponse
-// @Router /api/v1/users [get]
+// @Router /auth/api/v1/users [get]
 func (s *APIServer) handleGetUsers(w http.ResponseWriter, _ *http.Request) error {
 	users, err := s.readStore.GetUsers()
 	if err != nil {
@@ -166,7 +166,7 @@ func (s *APIServer) handleGetUsers(w http.ResponseWriter, _ *http.Request) error
 // @Param user body CreateUserRequest true "User data"
 // @Success 201 {object} DefaultCreatedResponse
 // @Failure 400 {object} APIError
-// @Router /api/v1/auth/register [post]
+// @Router /auth/api/v1/auth/register [post]
 func (s *APIServer) handleRegisterUser(w http.ResponseWriter, r *http.Request) error {
 	createUserReq := new(CreateUserRequest)
 
@@ -211,7 +211,7 @@ func (s *APIServer) handleRegisterUser(w http.ResponseWriter, r *http.Request) e
 // @Param user body LoginEmailRequest true "User data"
 // @Success 200 {object} LoginResponse
 // @Failure 400 {object} APIError
-// @Router /api/v1/auth/login-email [post]
+// @Router /auth/api/v1/auth/login-email [post]
 func (s *APIServer) handleLoginEmail(w http.ResponseWriter, r *http.Request) error {
 	loginReq := new(LoginEmailRequest)
 
@@ -240,7 +240,7 @@ func (s *APIServer) handleLoginEmail(w http.ResponseWriter, r *http.Request) err
 // @Tags health
 // @Produce json
 // @Success 200 {object} APISuccess
-// @Router /api/v1/health [get]
+// @Router /auth/api/v1/health [get]
 func (s *APIServer) handleHealthCheck(w http.ResponseWriter, _ *http.Request) error {
 	s.messenger.PublishUserCreated(&CreateUserPublish{
 		ID:       uuid.New(),
@@ -255,7 +255,7 @@ func (s *APIServer) handleHealthCheck(w http.ResponseWriter, _ *http.Request) er
 // @Success 200 {object} UserResponse
 // @Failure 400 {object} APIError
 // @Security ApiKeyAuth
-// @Router /api/v1/users/me [get]
+// @Router /auth/api/v1/users/me [get]
 func (s *APIServer) handleGetCurrentUser(w http.ResponseWriter, r *http.Request) error {
 	user, err := currentUserFromJWT(r, s.readStore)
 	if err != nil {
@@ -278,7 +278,7 @@ func (s *APIServer) handleGetCurrentUser(w http.ResponseWriter, r *http.Request)
 // @Success 200 {object} APISuccess
 // @Failure 400 {object} APIError
 // @Security ApiKeyAuth
-// @Router /api/v1/users/me [delete]
+// @Router /auth/api/v1/users/me [delete]
 func (s *APIServer) handleDeleteCurrentUser(
 	w http.ResponseWriter,
 	r *http.Request,
@@ -301,7 +301,7 @@ func (s *APIServer) handleDeleteCurrentUser(
 // @Param id path string true "User ID"
 // @Success 200 {object} UserResponse
 // @Failure 400 {object} APIError
-// @Router /api/v1/users/{id} [get]
+// @Router /auth/api/v1/users/{id} [get]
 func (s *APIServer) handleGetUser(w http.ResponseWriter, r *http.Request) error {
 	user, err := s.readStore.GetUserByID(uuid.MustParse(mux.Vars(r)["id"]))
 

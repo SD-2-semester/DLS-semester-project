@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/auth/login-email": {
+        "/auth/api/v1/auth/login-email": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -54,7 +54,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/auth/register": {
+        "/auth/api/v1/auth/register": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -93,7 +93,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/health": {
+        "/auth/api/v1/health": {
             "get": {
                 "produces": [
                     "application/json"
@@ -112,7 +112,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/users": {
+        "/auth/api/v1/users": {
             "get": {
                 "produces": [
                     "application/json"
@@ -134,7 +134,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/users/me": {
+        "/auth/api/v1/users/me": {
             "get": {
                 "security": [
                     {
@@ -192,7 +192,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/users/{id}": {
+        "/auth/api/v1/users/{id}": {
             "get": {
                 "produces": [
                     "application/json"
