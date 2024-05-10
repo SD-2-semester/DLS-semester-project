@@ -23,7 +23,7 @@ spec:
       containers:
         - name: chat-app
           image: mslaursen/dls-exam:chat_service
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8085
           env:

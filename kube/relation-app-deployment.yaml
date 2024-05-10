@@ -22,8 +22,8 @@ spec:
     spec:
       containers:
         - name: relation-app
-          image: mslaursen/dls-exam:relation_service1
-          imagePullPolicy: IfNotPresent # for using local repo or we can use "Never"
+          image: mslaursen/dls-exam:relation_service
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000
           env:

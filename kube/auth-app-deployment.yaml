@@ -23,7 +23,7 @@ spec:
       containers:
         - name: auth-app
           image: mslaursen/dls-exam:auth_service
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           command: ["./main"]
           ports:
             - containerPort: 8080
