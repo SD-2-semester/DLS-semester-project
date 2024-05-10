@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 #[utoipa::path(
     tag="user",
-    path="/user/test",
+    path="/relation/user/test",
 
     responses(
         (status = 200, description = "Test", body = ResponseDataString))
@@ -31,7 +31,7 @@ struct UserRelationParams {
 /// Get a users relations.
 #[utoipa::path(
     tag="user",
-    path="/user/{user_id}",
+    path="/relation/user/{user_id}",
     params(
         UserRelationParams,
     ),
@@ -61,7 +61,7 @@ async fn get_user_relations(
 /// Create a user.
 #[utoipa::path(
     tag="user",
-    path="/user",
+    path="/relation/user",
     request_body = UserInputDTO,
     responses(
         (status = 201, body = ResponseDataMessageOK),
@@ -91,7 +91,7 @@ async fn create_user(
 /// If a relation is successfully saved in the database, publish message to queue.
 #[utoipa::path(
     tag="user",
-    path="/user/relation",
+    path="/relation/user/relation",
     request_body = RelationInputDTO,
     responses(
         (status = 201, body = ResponseDataMessageOK),
@@ -132,7 +132,7 @@ async fn create_user_relation(
 
 pub fn relation_router_config(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("user")
+        web::scope("relation/user")
             .service(test)
             .service(create_user)
             .service(create_user_relation)

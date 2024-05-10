@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: relation-app
-          image: mslaursen/dls-exam:relation_service
+          image: mslaursen/dls-exam:relation_service1
           imagePullPolicy: IfNotPresent # for using local repo or we can use "Never"
           ports:
             - containerPort: 8000

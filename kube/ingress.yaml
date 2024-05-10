@@ -1,14 +1,14 @@
 
-apiVersion: traefik.containo.us/v1alpha1
-kind: Middleware
-metadata:
-  name: strip-auth-prefix
-spec:
-  stripPrefixRegex:
-    regex:
-      - "^/auth(/|$)"
-      - "^/notification(/|$)"
-      - "^/relation(/|$)"
+# apiVersion: traefik.containo.us/v1alpha1
+# kind: Middleware
+# metadata:
+#   name: strip-auth-prefix
+# spec:
+#   stripPrefixRegex:
+#     regex:
+#       - "^/auth(/|$)"
+#       - "^/notification(/|$)"
+#       - "^/relation(/|$)"
 
 ---
 
@@ -16,8 +16,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: traefik-ingress
-  annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: default-strip-auth-prefix@kubernetescrd
 spec:
   rules:
   - http:
