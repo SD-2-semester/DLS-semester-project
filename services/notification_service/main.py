@@ -3,11 +3,17 @@ import asyncio
 import uvicorn
 from api.routes.router import router as api_router
 from fastapi import FastAPI
+from fastapi.responses import UJSONResponse
 from rabbitmq.connection import setup_rabbitmq_consumers
 
-app = FastAPI()
+app = FastAPI(
+    docs_url="/notification/api/docs",
+    redoc_url="/notification/api/redoc",
+    openapi_url="/notification/api/openapi.json",
+    default_response_class=UJSONResponse,
+)
 
-app.include_router(api_router, prefix="/api")
+app.include_router(api_router, prefix="/notification/api")
 
 
 @app.on_event("startup")

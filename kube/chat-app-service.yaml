@@ -7,12 +7,12 @@ metadata:
     micro-service: chat-service
     app: g-chat-app
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     name: chat-app-pod
     micro-service: chat-service
     app: g-chat-app
   ports:
-    - port: 8085
+    - protocol: TCP
+      port: 80
       targetPort: 8085
-      nodePort: 30007

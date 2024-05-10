@@ -8,10 +8,9 @@ use neo4rs::Graph;
 use utoipa::IntoParams;
 use uuid::Uuid;
 
-
 #[utoipa::path(
     tag="user",
-    path="/user/test",
+    path="/relation/api/v1/user/test",
 
     responses(
         (status = 200, description = "Test", body = ResponseDataString))
@@ -31,7 +30,7 @@ struct UserRelationParams {
 /// Get a users relations.
 #[utoipa::path(
     tag="user",
-    path="/user/{user_id}",
+    path="/relation/api/v1/user/{user_id}",
     params(
         UserRelationParams,
     ),
@@ -61,7 +60,7 @@ async fn get_user_relations(
 /// Create a user.
 #[utoipa::path(
     tag="user",
-    path="/user",
+    path="/relation/api/v1/user",
     request_body = UserInputDTO,
     responses(
         (status = 201, body = ResponseDataMessageOK),
@@ -72,7 +71,6 @@ async fn create_user(
     input_dto: web::Json<dtos::user_dtos::UserInputDTO>,
     db: web::Data<Graph>,
 ) -> impl Responder {
-
     match dao::user_dao::create_node(&db, input_dto.into_inner()).await {
         Ok(_) => HttpResponse::Created().json(dtos::response_dtos::ResponseData {
             data: dtos::response_dtos::MessageOk::default(),
@@ -91,7 +89,7 @@ async fn create_user(
 /// If a relation is successfully saved in the database, publish message to queue.
 #[utoipa::path(
     tag="user",
-    path="/user/relation",
+    path="/relation/api/v1/user/relation",
     request_body = RelationInputDTO,
     responses(
         (status = 201, body = ResponseDataMessageOK),
@@ -132,7 +130,7 @@ async fn create_user_relation(
 
 pub fn relation_router_config(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("user")
+        web::scope("relation/api/v1/user")
             .service(test)
             .service(create_user)
             .service(create_user_relation)

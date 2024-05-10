@@ -84,8 +84,8 @@ async fn main() -> std::io::Result<()> {
             .app_data(graph_data.clone())
             .app_data(web::Data::new(channel.clone()))
             .service(
-                SwaggerUi::new("/swagger-ui/{_:.*}")
-                    .url("/api-docs/openapi.json", openapi.clone()),
+                SwaggerUi::new("/relation/swagger-ui/{_:.*}")
+                    .url("/relation/api-docs/openapi.json", openapi.clone()),
             )
             .configure(handlers::users::relation_router_config)
     })
