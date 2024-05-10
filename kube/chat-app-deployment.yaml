@@ -28,7 +28,7 @@ spec:
             - containerPort: 8080
           env:
             - name: CHAT_SERVICE_HOST
-              value: chat-service-svc
+              value: "0.0.0.0"
             - name: CHAT_SERVICE_PORT
               value: "8080"
             # postgres read/write
@@ -52,3 +52,15 @@ spec:
             # redis
             - name: CHAT_SERVICE_REDIS_HOST
               value: chat_service-redis
+            # elasticsearch
+            - name: CHAT_SERVICE_ELASTICSEARCH_HOST
+              value: elasticsearch-service
+            # rabbitmq
+            - name: CHAT_SERVICE_RABBITMQ_HOST
+              value: message-broker
+            - name: AUTHSERVICE_RABBITMQ_PORT
+              value: "5672"
+            - name: AUTHSERVICE_RABBITMQ_USER
+              value: user
+            - name: AUTHSERVICE_RABBITMQ_PASSWORD
+              value: password
