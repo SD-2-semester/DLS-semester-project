@@ -1,3 +1,4 @@
+--- # Redis Service notification
 apiVersion: v1
 kind: Service
 metadata:
@@ -15,4 +16,23 @@ spec:
   selector:
       name: redis-pod
       micro-service: redis-service
+      app: g-chat-app
+--- # Redis Service chat
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-chat-service
+  labels:
+    name: redis-chat-service
+    micro-service: redis-chat-service
+    app: g-chat-app
+spec:
+  type: ClusterIP
+  ports:
+    - name: chat-port
+      port: 6379
+      targetPort: 6379
+  selector:
+      name: redis-chat-pod
+      micro-service: redis-chat-service
       app: g-chat-app
