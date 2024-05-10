@@ -41,3 +41,10 @@ spec:
             name: notification-app-service
             port: 
               number: 80
+      - path: /chat
+        pathType: Prefix
+        backend:
+          service:
+            name: chat-service-svc
+            port: 
+              number: 80
