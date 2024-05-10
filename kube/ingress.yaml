@@ -48,3 +48,10 @@ spec:
             name: chat-service-svc
             port: 
               number: 80
+      - path: /gateway
+        pathType: Prefix
+        backend:
+          service:
+            name: gateway-app-service
+            port: 
+              number: 80

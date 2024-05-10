@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-app-deploy
+  labels:
+    name: gateway-app-deploy
+    app: g-chat-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: gateway-app-pod
+      micro-service: gateway-service
+      app: g-chat-app
+  template:
+    metadata:
+      name: gateway-app-pod
+      labels:
+        name: gateway-app-pod
+        micro-service: gateway-service
+        app: g-chat-app
+    spec:
+      containers:
+        - name: gateway-app
+          image: mslaursen/dls-exam:gateway
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8086
+          env:
+            - name: GATEWAY_HOST
+              value: "0.0.0.0"
+            - name: GATEWAY_PORT
+              value: "8086"
