@@ -8,7 +8,12 @@ jobs:
     strategy:
       matrix:
         service:
-          [services/services/auth_service, services/chat_service, services/notification_service, services/relation_service]
+          [
+            services/auth_service,
+            services/chat_service,
+            services/notification_service,
+            services/relation_service,
+          ]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -28,4 +33,4 @@ jobs:
           context: ./${{ matrix.service }}
           file: ./${{ matrix.service }}/Dockerfile
           push: true
-          tags: yourusername/${{ matrix.service }}_v2
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.service }}_v2
