@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-app-service
+  labels:
+    name: gateway-app-service
+    micro-service: gateway-service
+    app: g-chat-app
+spec:
+  type: ClusterIP
+  selector:
+    name: gateway-app-pod
+    micro-service: gateway-service
+    app: g-chat-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8086
