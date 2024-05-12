@@ -1,4 +1,5 @@
 from pydantic import BaseModel, ConfigDict
+from fastapi import Path
 
 
 class User(BaseModel):
