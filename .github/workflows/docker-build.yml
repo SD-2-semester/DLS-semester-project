@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         service:
-          [auth_service, chat_service, notification_service, relation_service]
+          [services/services/auth_service, services/chat_service, services/notification_service, services/relation_service]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
