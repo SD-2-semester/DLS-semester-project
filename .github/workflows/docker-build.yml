@@ -28,4 +28,4 @@ jobs:
           context: ./${{ matrix.service }}
           file: ./services/${{ matrix.service }}/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_IMAGE_NAME }}:`${{ matrix.service }}_v2
+          tags: ${{ secrets.DOCKER_IMAGE_NAME }}:${{ matrix.service }}_v2
