@@ -1,0 +1,31 @@
+name: Deploy to Azure Kubernetes Service
+
+on:
+  workflow_dispatch:
+    inputs:
+      service:
+        description: "Service to deploy"
+        required: true
+        default: "auth_service"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v1
+
+      - name: Set context to AKS
+        run: az aks get-credentials --name ${{ secrets.AKS_CLUSTER_NAME }} --resource-group ${{ secrets.AKS_RESOURCE_GROUP }}
+
+      - name: Update Kubernetes deployment
+        run: |
+          kubectl set image deployment/${{ github.event.inputs.service }} ${{ github.event.inputs.service }}=${{ secrets.DOCKER_IMAGE_NAME }}:${{ github.event.inputs.service }}_v2 --record
