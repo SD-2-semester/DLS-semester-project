@@ -4,23 +4,31 @@ on:
   push:
     branches:
       - main
-      - azure
     paths:
-      - 'service1/auth/**'
-      - 'service1/chat/**'
-      - 'service1/notification/**'
-      - 'service1/relation/**'
+      - "service1/auth/**"
+      - "service1/chat/**"
+      - "service1/notification/**"
+      - "service1/relation/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "service1/auth/**"
+      - "service1/chat/**"
+      - "service1/notification/**"
+      - "service1/relation/**"
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [auth_service, chat_service, notification_service, relation_service]
+        service:
+          [auth_service, chat_service, notification_service, relation_service]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
