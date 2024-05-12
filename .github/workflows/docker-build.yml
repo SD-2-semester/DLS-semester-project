@@ -26,6 +26,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./services/${{ matrix.service }}
-          file: ./${{ matrix.service }}/Dockerfile
+          file: ./services/${{ matrix.service }}/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_IMAGE_NAME }}:${{ matrix.service }}_v2
