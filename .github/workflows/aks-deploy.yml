@@ -1,12 +1,6 @@
 name: Deploy to Azure Kubernetes Service
 
-on:
-  workflow_dispatch:
-    inputs:
-      service:
-        description: "Service to deploy"
-        required: true
-        default: "auth_service"
+on: push
 
 jobs:
   deploy:
