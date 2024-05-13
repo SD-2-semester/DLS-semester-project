@@ -15,11 +15,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Login to Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+            auth-type: IDENTITY
+            tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+            subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+            enable-AzPSSession: true
+  
       - name: Install kubectl
         uses: azure/setup-kubectl@v1
 
@@ -28,4 +32,4 @@ jobs:
 
       - name: Update Kubernetes deployment
         run: |
-          kubectl set image deployment/${{ github.event.inputs.service }} ${{ github.event.inputs.service }}=${{ secrets.DOCKER_IMAGE_NAME }}:${{ github.event.inputs.service }}_v2 --record
+          kubectl config get-contexts
