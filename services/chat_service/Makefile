@@ -6,3 +6,9 @@ lint: ## Lint
 	poetry run black chat_service
 	poetry run ruff check . --fix
 	poetry run mypy chat_service
+
+docker-build:
+	docker build -t mslaursen/dls-exam:chat_service .
+
+docker-push:
+	docker push mslaursen/dls-exam:chat_service

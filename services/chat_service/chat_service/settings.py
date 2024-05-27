@@ -18,6 +18,10 @@ class BaseSettings(PydanticBaseSettings):
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
 
+    def __repr__(self) -> str:
+        """Return settings as a string."""
+        return f"{self.__class__.__name__}({self.model_dump()})"
+
 
 class LogLevel(str, enum.Enum):
     """Possible log levels."""
