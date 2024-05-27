@@ -3,12 +3,11 @@ from typing import Awaitable, Callable
 from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI
 from redis.asyncio import Redis
-from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from chat_service.db.meta import meta
 from chat_service.services.rabbit.lifetime import init_rabbit, shutdown_rabbit
-from chat_service.settings import EnvLevel, settings
+from chat_service.settings import settings
 
 
 async def _setup_db_ro(app: FastAPI) -> None:  # pragma: no cover
@@ -17,7 +16,6 @@ async def _setup_db_ro(app: FastAPI) -> None:  # pragma: no cover
         str(settings.pg_ro.url),
         echo=settings.pg_ro.echo,
     )
-    print("RO Url:", settings.pg_ro.url)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
     app.state.db_engine_ro = engine
     app.state.db_session_ro_factory = session_factory
@@ -31,7 +29,6 @@ async def _setup_db(app: FastAPI) -> None:  # pragma: no cover
         str(settings.pg.url),
         echo=settings.pg.echo,
     )
-    print("Url:", settings.pg.url)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
     app.state.db_engine = engine
     app.state.db_session_factory = session_factory
