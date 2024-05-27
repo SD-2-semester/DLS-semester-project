@@ -1,24 +1,23 @@
-name: Deploy to Azure Kubernetes Service
+name: Run Azure Login with OIDC
+on: [workflow_dispatch, push]
 
-on:
-  workflow_dispatch:
-    inputs:
-      service:
-        description: "Service to deploy"
-        required: true
-        default: "auth_service"
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Login to Azure
-        uses: azure/login@v1
+      - name: Azure login
+        uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Install kubectl
         uses: azure/setup-kubectl@v1
@@ -28,4 +27,4 @@ jobs:
 
       - name: Update Kubernetes deployment
         run: |
-          kubectl set image deployment/${{ github.event.inputs.service }} ${{ github.event.inputs.service }}=${{ secrets.DOCKER_IMAGE_NAME }}:${{ github.event.inputs.service }}_v2 --record
+          kubectl apply -f ./kube/azure
