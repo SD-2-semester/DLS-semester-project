@@ -3,12 +3,11 @@ from typing import Awaitable, Callable
 from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI
 from redis.asyncio import Redis
-from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from chat_service.db.meta import meta
 from chat_service.services.rabbit.lifetime import init_rabbit, shutdown_rabbit
-from chat_service.settings import EnvLevel, settings
+from chat_service.settings import settings
 
 
 async def _setup_db_ro(app: FastAPI) -> None:  # pragma: no cover

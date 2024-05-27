@@ -1,5 +1,7 @@
 from fastapi import APIRouter
 
+from chat_service.settings import settings
+
 router = APIRouter()
 
 
@@ -10,3 +12,9 @@ def health_check() -> None:
 
     It returns 200 if the project is healthy.
     """
+
+
+@router.get("/settings")
+def get_settings(setting: str) -> str:
+    """Returns the current settings of the project."""
+    return repr(getattr(settings, setting))
