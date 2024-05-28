@@ -1,7 +1,6 @@
-import json
 from typing import Annotated
 
-from fastapi import BackgroundTasks, Depends, Request, WebSocket
+from fastapi import Depends, Request, WebSocket
 from redis.asyncio import Redis
 from redis.asyncio.client import PubSub
 
@@ -17,8 +16,8 @@ def get_redis(request: Request) -> Redis:  # type: ignore
 class RedisPubSubManager:
     """Initialize the RedisPubSubManager."""
 
-    def __init__(self) -> None:
-        self.redis: Redis = Depends(get_redis)  # type: ignore
+    def __init__(self, redis: Redis = Depends(get_redis)) -> None:  # type: ignore
+        self.redis = redis
 
     async def connect(self) -> None:
         """Connects to the Redis server and initializes the pubsub client."""
@@ -26,7 +25,7 @@ class RedisPubSubManager:
 
     async def publish(self, room_id: str, message: MessageType) -> None:
         """Publish message to a specific Redis channel."""
-        await self.redis.publish(room_id, json.dumps(message))
+        await self.redis.publish(room_id, message.model_dump_json())
 
     async def subscribe(self, room_id: str) -> PubSub:
         """Subscribe to a Redis channel."""
@@ -41,9 +40,12 @@ class RedisPubSubManager:
 class WebSocketManager:
     """..."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        pubsub_client: RedisPubSubManager = RedisPubSubManager(),
+    ) -> None:
         self.rooms: dict[str, list[WebSocket]] = {}
-        self.pubsub_client = RedisPubSubManager()
+        self.pubsub_client = pubsub_client
 
     def is_user_in_room(self, user_id: str, room_id: str) -> bool:
         """..."""
@@ -55,11 +57,14 @@ class WebSocketManager:
 
         return user_id in room
 
+    def set_pubsub_client(self, redis: Redis) -> None:  # type: ignore
+        """Set or replace the RedisPubSubManager client."""
+        self.pubsub_client = RedisPubSubManager(redis)
+
     async def connect_user(
         self,
         room_id: Annotated[str, "Chat/Server ID."],
         websocket: WebSocket,
-        background_tasks: BackgroundTasks,
     ) -> None:
         """Adds a user's WebSocket connection to a room."""
         await websocket.accept()
@@ -72,10 +77,8 @@ class WebSocketManager:
 
         await self.pubsub_client.connect()
         pubsub_subscriber = await self.pubsub_client.subscribe(room_id)
-        background_tasks.add_task(
-            self.dispatch_pubsub_messages,
-            pubsub_subscriber,
-        )
+
+        await self.dispatch_pubsub_messages(pubsub_subscriber)
 
     async def broadcast(self, room_id: str, message: MessageType) -> None:
         """Broadcasts a message to all connected WebSockets in a room."""

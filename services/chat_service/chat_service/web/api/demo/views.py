@@ -1,9 +1,11 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
+from redis.asyncio import Redis
 
 from chat_service.services.elasticsearch.dependencies import GetES
 from chat_service.services.rabbit.dependencies import GetRMQ
+from chat_service.services.ws.ws import get_redis
 from chat_service.utils import dtos
 
 router = APIRouter()
@@ -54,3 +56,25 @@ async def demo_notify_new_server_message(
     """
     await rmq.notify_new_server_message(message=message)
     return message
+
+
+@router.post("/set-redis")
+async def demo_set_redis(
+    key: str,
+    value: str,
+    redis: Redis = Depends(get_redis),  # type: ignore
+) -> str:
+    """Demo set redis."""
+
+    await redis.set(key, value)
+    return value
+
+
+@router.get("/get-redis")
+async def demo_get_redis(
+    key: str,
+    redis: Redis = Depends(get_redis),  # type: ignore
+) -> str | None:
+    """Demo get redis."""
+
+    return await redis.get(key)

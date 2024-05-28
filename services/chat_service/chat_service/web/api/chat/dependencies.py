@@ -31,4 +31,18 @@ async def get_chat_if_participant(
     return chat
 
 
+async def get_chat_if_participant_ws(
+    chat_id: UUID, user_id: UUID, r_daos: ReadDAOs
+) -> Chat:
+    """Get chat if user is a participant."""
+
+    chat = await r_daos.chat.get_by_id_or_error(chat_id)
+    existing_chat = await r_daos.chat.get_chat_if_participant(chat.id, user_id)
+
+    if existing_chat is None:
+        raise exceptions.Http404("User is not a participant of this chat.")
+
+    return chat
+
+
 GetChatIfParticipant = Annotated[Chat, Depends(get_chat_if_participant)]

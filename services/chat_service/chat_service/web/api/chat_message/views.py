@@ -38,15 +38,13 @@ async def create_chat_message(
         ),
     )
 
-    other_user_id = chat.user_id_1 if chat.user_id_1 == user_id else chat.user_id_2
-    if ws_manager.is_user_in_room(str(other_user_id), str(chat.id)):
-        await ws_manager.broadcast(
-            str(chat.id),
-            message=dtos.ChatPublishDTO(
-                message=request_dto.message,
-                chat_id=chat.id,
-            ),
-        )
+    await ws_manager.broadcast(
+        str(chat.id),
+        message=dtos.ChatPublishDTO(
+            message=request_dto.message,
+            chat_id=chat.id,
+        ),
+    )
 
     await elastic.post_message(
         index="chat_message",

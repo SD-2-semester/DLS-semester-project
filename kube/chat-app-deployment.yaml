@@ -53,10 +53,13 @@ spec:
               value: chat_service
             - name: CHAT_SERVICE_PG_RO_DATABASE
               value: chat_service
+            # url
+            - name: CHAT_SERVICE_AUTH_SERVICE_URL
+              value: http://auth-app-service/auth/api/v1
             # redis
-            - name: NOTIFICATION_SERVICE_REDIS_HOST
+            - name: CHAT_SERVICE_REDIS_HOST
               value:  redis-chat-service # service name
-            - name: NOTIFICATION_SERVICE_REDIS_PORT
+            - name: CHAT_SERVICE_REDIS_PORT
               value: "6379"
             # elasticsearch
             - name: CHAT_SERVICE_ELASTICSEARCH_HOST
