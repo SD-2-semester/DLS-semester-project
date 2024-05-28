@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import BackgroundTasks, Depends, Request, WebSocket
+from fastapi import Depends, Request, WebSocket
 from redis.asyncio import Redis
 from redis.asyncio.client import PubSub
 
@@ -25,7 +25,7 @@ class RedisPubSubManager:
 
     async def publish(self, room_id: str, message: MessageType) -> None:
         """Publish message to a specific Redis channel."""
-        await self.redis.publish(room_id, "message.model_dump_json()")
+        await self.redis.publish(room_id, message.model_dump_json())
 
     async def subscribe(self, room_id: str) -> PubSub:
         """Subscribe to a Redis channel."""
@@ -57,11 +57,14 @@ class WebSocketManager:
 
         return user_id in room
 
+    def set_pubsub_client(self, redis: Redis) -> None:  # type: ignore
+        """Set or replace the RedisPubSubManager client."""
+        self.pubsub_client = RedisPubSubManager(redis)
+
     async def connect_user(
         self,
         room_id: Annotated[str, "Chat/Server ID."],
         websocket: WebSocket,
-        background_tasks: BackgroundTasks,
     ) -> None:
         """Adds a user's WebSocket connection to a room."""
         await websocket.accept()
@@ -74,10 +77,8 @@ class WebSocketManager:
 
         await self.pubsub_client.connect()
         pubsub_subscriber = await self.pubsub_client.subscribe(room_id)
-        background_tasks.add_task(
-            self.dispatch_pubsub_messages,
-            pubsub_subscriber,
-        )
+
+        await self.dispatch_pubsub_messages(pubsub_subscriber)
 
     async def broadcast(self, room_id: str, message: MessageType) -> None:
         """Broadcasts a message to all connected WebSockets in a room."""

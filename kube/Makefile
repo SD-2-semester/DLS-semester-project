@@ -9,3 +9,7 @@ status:
 
 apply:
 	kubectl apply -f .
+
+reapply:
+	kubectl delete -f .
+	kubectl apply -f .
