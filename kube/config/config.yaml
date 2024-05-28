@@ -1,7 +1,8 @@
 apiVersion: k3d.io/v1alpha3
 kind: Simple
 name: mycluster
-servers: 1
+servers: 1  # Total number of server nodes
+agents: 2  # Total number of agent (worker) nodes
 image: docker.io/rancher/k3s:v1.27.4-k3s1
 ports:
   - port: 80:80

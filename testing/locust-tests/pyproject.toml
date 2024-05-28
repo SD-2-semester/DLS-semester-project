@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "locust-tests"
+version = "0.1.0"
+description = ""
+authors = ["Moshizzl3 <81045658+Moshizzl3@users.noreply.github.com>"]
+readme = "README.md"
+packages = [{include = "locust_tests"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+locust = "^2.28.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
