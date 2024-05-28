@@ -10,7 +10,7 @@ from chat_service.services.rabbit.lifetime import init_rabbit, shutdown_rabbit
 from chat_service.settings import settings
 
 
-async def _setup_db_ro(app: FastAPI) -> None:  # pragma: no cover
+async def setup_db_ro(app: FastAPI) -> None:  # pragma: no cover
     """Setup read only database."""
     engine = create_async_engine(
         str(settings.pg_ro.url),
@@ -23,7 +23,7 @@ async def _setup_db_ro(app: FastAPI) -> None:  # pragma: no cover
     await engine.dispose()
 
 
-async def _setup_db(app: FastAPI) -> None:  # pragma: no cover
+async def setup_db(app: FastAPI) -> None:  # pragma: no cover
     """Setup database."""
     engine = create_async_engine(
         str(settings.pg.url),
@@ -36,23 +36,26 @@ async def _setup_db(app: FastAPI) -> None:  # pragma: no cover
     async with engine.begin() as connection:
         await connection.run_sync(meta.create_all)
 
-    # query = """
-    #    GRANT SELECT ON ALL TABLES IN SCHEMA public TO repl_user;
-    # """
+        if settings.env == "compose":
+            from sqlalchemy import text
 
-    # await connection.execute(text(query))
+            query = """
+            GRANT SELECT ON ALL TABLES IN SCHEMA public TO repl_user;
+            """
 
-    # query = """
-    #    ALTER DEFAULT PRIVILEGES IN SCHEMA public
-    #    GRANT SELECT ON TABLES TO repl_user;
-    # """
+            await connection.execute(text(query))
 
-    # await connection.execute(text(query))
+            query = """
+            ALTER DEFAULT PRIVILEGES IN SCHEMA public
+            GRANT SELECT ON TABLES TO repl_user;
+            """
+
+            await connection.execute(text(query))
 
     await engine.dispose()
 
 
-def _setup_redis(app: FastAPI) -> None:
+def setup_redis(app: FastAPI) -> None:
     """Setup Redis."""
     app.state.redis = Redis.from_url(
         str(settings.redis.url),
@@ -86,10 +89,10 @@ def register_startup_event(
     @app.on_event("startup")
     async def _startup() -> None:
         app.middleware_stack = None
-        await _setup_db(app)
-        await _setup_db_ro(app)
+        await setup_db(app)
+        await setup_db_ro(app)
 
-        _setup_redis(app)
+        setup_redis(app)
         await _setup_es(app)
 
         init_rabbit(app)

@@ -8,7 +8,6 @@ from chat_service.db.models import Chat, ChatMessage
 from chat_service.services.elasticsearch.dependencies import GetES
 from chat_service.services.rabbit.dependencies import GetRMQ
 from chat_service.services.ws.ws import ws_manager
-from chat_service.settings import settings
 from chat_service.utils import dtos
 from chat_service.utils.daos import ReadDAOs, WriteDAOs
 from chat_service.utils.http import GetHttpClient
@@ -56,11 +55,11 @@ async def create_chat_message(
         ),
     )
 
-    user_info = (
-        await http_client.get(
-            f"{settings.auth_service_url}/users/{user_id}",
-        )
-    )["data"]
+    # user_info = (
+    #     await http_client.get(
+    #         f"{settings.auth_service_url}/users/{user_id}",
+    #     )
+    # )["data"]
 
     await rmq.notify_new_chat_message(
         message=dtos.RMQChatNotificationDTO(
@@ -68,7 +67,7 @@ async def create_chat_message(
             user_id_1=chat.user_id_1,
             user_id_2=chat.user_id_2,
             message=request_dto.message,
-            sender_username=user_info["username"],
+            sender_username='user_info["username"]',
         ),
     )
 
